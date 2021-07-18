@@ -1,9 +1,38 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { StyleSheet, Text, View  } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
+
 import LoginScreen from './screens/LoginScreen';
 import SignUpScreen from './screens/SignUpScreen';
+import HomeScreen from './screens/HomeScreen';
+
+import { ArtProvider, useArtContext } from "./utils/GlobalState";
+import { authenticatedUser } from './utils/API';
+import { LOGIN } from './utils/actions';
+
+
+// Check if user is logged in or not
+function WatchAuthenticatedUser() {
+  // eslint-disable-next-line no-unused-vars
+  const [state, dispatch] = useArtContext();
+  console.log(state)
+  useEffect(() => {
+    authenticatedUser()
+      .then(response => {
+        if (response.data) {
+          dispatch({
+            type: LOGIN,
+            user: response.data.user_id
+          });
+        }
+      })
+      .catch(err => console.error(err))
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  },[])
+  return <></>;
+}
+
 
 const Stack = createStackNavigator()
 
@@ -16,12 +45,16 @@ const globalScreenOptions = {
 export default function App() {
   
   return (
-    <NavigationContainer>
-      <Stack.Navigator screenOptions={globalScreenOptions}>
-        <Stack.Screen name='Login' component={LoginScreen} />
-        <Stack.Screen name='Signup' component={SignUpScreen} />
-      </Stack.Navigator>
-    </NavigationContainer>
+    <ArtProvider>
+      <WatchAuthenticatedUser />
+      <NavigationContainer>
+        <Stack.Navigator screenOptions={globalScreenOptions}>
+          <Stack.Screen name="Home" component={HomeScreen} />
+          <Stack.Screen name='Login' component={LoginScreen} />
+          <Stack.Screen name='Signup' component={SignUpScreen} />
+        </Stack.Navigator>
+      </NavigationContainer>
+    </ArtProvider>
   );
 }
 
@@ -31,5 +64,5 @@ const styles = StyleSheet.create({
     backgroundColor: 'black',
     alignItems: 'center',
     justifyContent: 'center',
-  },
+  }
 });

@@ -1,13 +1,26 @@
-import React, { useLayoutEffect, useRef } from 'react';
+import React, { useEffect, useLayoutEffect, useState } from 'react';
 import { KeyboardAvoidingView, StyleSheet, Text, View } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { Button, Input, Image } from 'react-native-elements';
+import { signup } from '../utils/API';
+import { useArtContext } from '../utils/GlobalState';
+import { LOGIN } from '../utils/actions';
+import axios from 'axios';
+
 const SignUpScreen = ({ navigation }) => {
 
-    const userNameRef = useRef();
-    const firstNameRef = useRef();
-    const emailRef = useRef();
-    const passwordRef = useRef()
+    const [state,dispatch] = useArtContext();
+    const [signUpSuccess, setSignUpSuccess] = useState();
+    const [username, setUserName] = useState("");
+    const [firstname, setFirstName] = useState("");
+    const [email, setEmail] = useState("");
+    const [password, setPassword] = useState("");
+
+    useEffect(() => {
+        if(state.user.length){
+            navigation.replace("Home")
+        }
+    },[])
 
     useLayoutEffect(() => {
         navigation.setOptions({
@@ -15,35 +28,61 @@ const SignUpScreen = ({ navigation }) => {
         })
     },[navigation])
 
+
+    const handleSignup = (event) => {
+        event.preventDefault();
+        axios.post('https://my-mini-gallery.herokuapp.com/api/user/', {
+            username: username,
+            firstName: firstname,
+            email: email,
+            password: password,
+            date: Date.now()
+        })
+            .then(response => {
+                dispatch({
+                    type: LOGIN,
+                    user: response.data.user_id,
+                    art: []
+                });
+                alert("Sign up successful!")
+                navigation.replace("Home")
+            })
+            .catch(error => alert(error))
+    }
+    // console.log(state)
     return(
         <KeyboardAvoidingView behavior="padding" style={styles.container}>
             <StatusBar style="light" />
             <View style={styles.inputContainer}>
                 <View style={styles.inputContainer}>
-                    <Text h4 style={{color:"white", marginBottom:30}}>Welcome To Your Online Art Community!</Text>
+                    <Text h4 style={{color:"white", marginBottom:10}}>Welcome To Your Online Art Community!</Text>
                     <Input
                         style={styles.inputContainerElement}
                         placeholder="username"
                         autoFocus type="text"
-                        ref={userNameRef}
+                        value={username}
+                        onChangeText={(text) => setUserName(text)}
                     />
                     <Input
                         style={styles.inputContainerElement}
                         placeholder="full name"
-                        ref={firstNameRef}
+                        value={firstname}
+                        onChangeText={(text) => setFirstName(text)}
                     />
                     <Input
                         style={styles.inputContainerElement}
                         placeholder="email"
-                        ref={emailRef}
+                        value={email}
+                        onChangeText={(text) => setEmail(text)}
                     />
                     <Input
                         style={styles.inputContainerElement}
                         placeholder="password"
                         secureTextEntry type="password"
-                        ref={passwordRef}
+                        value={password}
+                        onChangeText={(text) => setPassword(text)}
                     />
-                    <Button title="Signup" style={styles.button} />
+                    <Button title="Signup" style={styles.button} onPress={handleSignup} />
                 </View>
             </View>
             <View style={{height:80}} />

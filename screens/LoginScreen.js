@@ -1,12 +1,21 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { KeyboardAvoidingView, StyleSheet, Text, View } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { Button, Input, Image } from 'react-native-elements';
 import logo from '../assets/logo.png';
+import { useArtContext } from '../utils/GlobalState';
 
 const  LoginScreen = ({ navigation }) => {
-    return (
 
+    const [state,dispatch] = useArtContext();
+
+    useEffect(() => {
+        if (state.user.length) {
+            navigation.replace("Home")
+        }
+    }, [])
+
+    return (
         <KeyboardAvoidingView behavior="padding" style={styles.container}>
             <StatusBar style="light" />
             <View style={styles.inputContainer}>
