@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react"
 import { StyleSheet, Text, View, Image, Modal, Button } from 'react-native';
 import Moment from 'react-moment';
-import { loadComments } from '../utils/API';
+import { loadComments } from '../../utils/API';
 
 const CommentTabView = (props) => {
     const [comments, setComments] = useState([]);

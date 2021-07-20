@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react"
 import { StyleSheet, Text, View, Image, ActivityIndicator } from 'react-native';
 import { ScrollView } from "react-native-gesture-handler";
 
+
 const MoreTabView = (props) => {
 
     const [moreByArtist, setMoreByArtist] = useState();
@@ -28,7 +29,7 @@ const MoreTabView = (props) => {
                         <View style={styles.imageWrapper}>
                             {moreByArtist.map(art => {
                                 return (
-                                    <Image source={{ uri: art.src }} style={styles.image} />
+                                    <Image source={{ uri: art.src }} id={art._id} style={styles.image} />
                                 )
                             })}
                         </View>

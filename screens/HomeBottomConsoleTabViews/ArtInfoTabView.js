@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react"
 import { StyleSheet, Text, View, Image, Button, ActivityIndicator } from 'react-native';
 import Moment from 'react-moment';
-import { getArtist } from '../utils/API';
+import { getArtist } from '../../utils/API';
 
 const ArtInfoTabView = (props) => {
 

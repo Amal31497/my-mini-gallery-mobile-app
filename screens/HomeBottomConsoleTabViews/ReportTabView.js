@@ -1,6 +1,6 @@
 import React, { useState } from "react"
 import { StyleSheet, Text, View, } from 'react-native';
-import { Button } from 'react-native-elements'
+import { Button } from 'react-native-elements';
 import { Picker } from '@react-native-picker/picker';
 
 const ReportTabView = () => {
