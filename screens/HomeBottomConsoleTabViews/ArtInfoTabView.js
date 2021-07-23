@@ -9,12 +9,14 @@ const ArtInfoTabView = (props) => {
     const [artist, setArtist] = useState();
 
     useEffect(() => {
-        getArtist(art.user)
-            .then(response => {
-                setArtist(response.data)
-            })
-            .catch(error => alert("Could not find an artist for this posting :("))
-    },[props])
+        if (art) {
+            getArtist(art.user)
+                .then(response => {
+                    setArtist(response.data)
+                })
+                .catch(error => alert("Could not find an artist for this posting :("))
+        }
+    }, [props])
 
     return (
         artist ?

@@ -6,10 +6,13 @@ import { createStackNavigator } from '@react-navigation/stack';
 import LoginScreen from './screens/LoginScreen';
 import SignUpScreen from './screens/SignUpScreen';
 import HomeScreen from './screens/HomeScreen';
+import ProfileScreen from './screens/ProfileScreen';
+import UpdateProfileScreen from "./screens/UpdateProfileScreen";
 
 import { ArtProvider, useArtContext } from "./utils/GlobalState";
 import { authenticatedUser } from './utils/API';
 import { LOGIN } from './utils/actions';
+
 
 
 // Check if user is logged in or not
@@ -21,6 +24,7 @@ function WatchAuthenticatedUser() {
     authenticatedUser()
       .then(response => {
         if (response.data) {
+          console.log(response.data)
           dispatch({
             type: LOGIN,
             user: response.data.user_id
@@ -46,12 +50,14 @@ export default function App() {
   
   return (
     <ArtProvider>
-      <WatchAuthenticatedUser />
       <NavigationContainer>
+        <WatchAuthenticatedUser />
         <Stack.Navigator screenOptions={globalScreenOptions}>
-          <Stack.Screen name="Home" component={HomeScreen} />
           <Stack.Screen name='Login' component={LoginScreen} />
           <Stack.Screen name='Signup' component={SignUpScreen} />
+          <Stack.Screen name="Home" component={HomeScreen} />
+          <Stack.Screen name="Profile" component={ProfileScreen} />
+          <Stack.Screen name="Update Profile" component={UpdateProfileScreen} />
         </Stack.Navigator>
       </NavigationContainer>
     </ArtProvider>

@@ -30,6 +30,8 @@ const MoreTabView = (props) => {
                             {moreByArtist.map(art => {
                                 return (
                                     <Image source={{ uri: art.src }} id={art._id} style={styles.image} />
+                                    ||
+                                    <ActivityIndicator size="large" color="white"  />
                                 )
                             })}
                         </View>

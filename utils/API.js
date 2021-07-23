@@ -17,8 +17,9 @@ const deleteArt = (id) => axios.delete("https://my-mini-gallery.herokuapp.com/ap
 
 // Artist/User routes
 const getArtist = (id) => axios.get("https://my-mini-gallery.herokuapp.com/api/user/" + id);
-const updateUser = (id, art) => axios.put("https://my-mini-gallery.herokuapp.com/api/user/" + id, art);
-const updateUserFavorites = (id, favorite) => axios.put("https://my-mini-gallery.herokuapp.com/api/user/" + id, favorite);
+const updateUser = (id, user) => axios.put("https://my-mini-gallery.herokuapp.com/api/user/" + id, user);
+const addNewArtToUser = (id, artId) => axios.put("https://my-mini-gallery.herokuapp.com/api/user/" + id, artId);
+const addNewFavoriteArt = (id, artId) => axios.put("https://my-mini-gallery.herokuapp.com/api/user/" + id, artId);
 const deleteArtist = (id) => axios.delete("https://my-mini-gallery.herokuapp.com/api/user/" + id);
 
 
@@ -53,7 +54,8 @@ export {
     getArtist,
     updateUser,
     deleteArtist,
-    updateUserFavorites,
+    addNewArtToUser,
+    addNewFavoriteArt,
 
     // Comment routes
     addComment,

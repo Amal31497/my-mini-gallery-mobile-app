@@ -16,11 +16,11 @@ const SignUpScreen = ({ navigation }) => {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
 
-    useEffect(() => {
-        if(state.user.length){
-            navigation.replace("Home")
-        }
-    },[])
+    // useEffect(() => {
+    //     if(state.user){
+    //         navigation.replace("Home")
+    //     }
+    // },[])
 
     useLayoutEffect(() => {
         navigation.setOptions({
@@ -41,8 +41,7 @@ const SignUpScreen = ({ navigation }) => {
             .then(response => {
                 dispatch({
                     type: LOGIN,
-                    user: response.data.user_id,
-                    art: []
+                    user: response.data.user.user_id
                 });
                 alert("Sign up successful!")
                 navigation.replace("Home")
@@ -52,7 +51,7 @@ const SignUpScreen = ({ navigation }) => {
     // console.log(state)
     return(
         <KeyboardAvoidingView behavior="padding" style={styles.container}>
-            <StatusBar style="light" />
+            <StatusBar style="dark" />
             <View style={styles.inputContainer}>
                 <View style={styles.inputContainer}>
                     <Text h4 style={{color:"white", marginBottom:10}}>Welcome To Your Online Art Community!</Text>

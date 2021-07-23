@@ -1,9 +1,9 @@
-import React, { createContext, useReducer, useContext } from 'react';
+import { NavigationContainer } from '@react-navigation/native';
+import React, { createContext, useReducer, useContext, useEffect } from 'react';
 // Actions
 import {
     LOGIN,
-    LOGOUT,
-    RUN_QUERY
+    LOGOUT
 } from "./actions"
 
 // Global context init
@@ -23,21 +23,17 @@ const reducer = (state, action) => {
                 ...state,
                 user: {}
             }
-        case RUN_QUERY:
-            return {
-                ...state,
-                art: action.art
-            }
         default:
             return state
     }
 }
 
+
+
 // Provider init
 const ArtProvider = ({ value = {}, ...props }) => {
     const [state, dispatch] = useReducer(reducer, {
-        user: {},
-        art: []
+        user: {}
     })
 
     return <Provider value={[state, dispatch]} {...props} />

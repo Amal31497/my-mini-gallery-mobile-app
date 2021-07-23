@@ -1,20 +1,20 @@
-import React, { useEffect, useState } from "react";
+import React, { useLayoutEffect, useEffect, useState, useRef } from "react";
 
 import { StyleSheet, Text, View, Image, Modal, FlatList, TouchableWithoutFeedback, TouchableOpacity } from 'react-native';
 import { Button, Input } from 'react-native-elements';
 import { ScrollView } from "react-native-gesture-handler";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useArtContext } from '../utils/GlobalState';
-import { getAllArt, getArtist } from '../utils/API';
+import { getAllArt, getArtist, logout, addNewFavoriteArt } from '../utils/API';
+import { LOGOUT } from "../utils/actions";
 import { Entypo, AntDesign, FontAwesome5, Octicons, Ionicons } from '@expo/vector-icons';
-
+import artistPlaceholder from "../assets/artist.jpg"
 import Moment from 'react-moment';
 
 import ArtInfoTabView from "./HomeBottomConsoleTabViews/ArtInfoTabView";
 import CommentTabView from "./HomeBottomConsoleTabViews/CommentTabView";
 import MoreTabView from "./HomeBottomConsoleTabViews/MoreTabView";
 import ReportTabView from "./HomeBottomConsoleTabViews/ReportTabView";
-
 
 const FindArtistAvatar = (props) => {
     const [foundArtist, setFoundArtist] = useState();
@@ -24,15 +24,13 @@ const FindArtistAvatar = (props) => {
             .then(response => {
                 if (response.data.avatar) {
                     setFoundArtist(response.data.avatar.avatarSrc)
-                } else {
-                    setFoundArtist("#")
                 }
             })
             .catch(error => console.log(error))
     }, []);
 
     return (
-        <Image source={{ uri: foundArtist }} style={{ width: 35, height: 35 }} />
+        <Image source={{ uri: foundArtist }} style={{ width: 35, height: 35 }} />     
     )
 }
 
@@ -60,9 +58,65 @@ const HomeScreen = ({ navigation }) => {
     const [rightModal, setRightModal] = useState(false);
     const [selectedArt, setSelectedArt] = useState();
     const [selectedTab, setSelectedTab] = useState("infoTab");
+    const [selectedFavoriteId, setSelectedFavoriteId] = useState([]);
     const genres = ["3D", "AnimeandManga", "ArtisanCraft", "Comic", "DigitalArt", "TraditionalArt", "Customization", "Cosplay", "Fantasy", "FanArt", "PhotoManipulation", "Photography"]
-    
+    const scrollRef = useRef(null);
+
+    const handleLogout = (event) => {
+        event.preventDefault()
+        
+        logout()
+            .then(response => {
+                console.log(response);
+                dispatch({
+                    type: LOGOUT,
+                    user: {}
+                })
+                navigation.replace("Login")
+            })
+            .catch(error => console.log(error))
+    }
+
+    const checkoutProfile = (event) => {
+        event.preventDefault();
+
+        navigation.replace("Profile")
+    }
+
+    const checkoutHome = (event) => {
+        event.preventDefault();
+    }
+
+
+    useLayoutEffect(() => {
+        navigation.setOptions({
+            headerStyle:{ backgroundColor:"rgb(53,58,63)" },
+            headerTitleStyle:{ color:"white" },
+            headerRight: () => {
+                return (
+                    <View>
+                        <AntDesign name="logout" size={24} color="white" style={{ marginRight: 20 }} onPress={handleLogout} />
+                    </View>
+                )
+            },
+            headerLeft: () => {
+                return (
+                    <View>
+                        <Entypo name="menu" size={32} color="white" style={{marginLeft:30}} />
+                    </View>
+                )
+            }
+        })
+    }, [navigation])
+
     useEffect(() => {
+
+        // console.log(AsyncStorage.getItem("loggedIn"))
+
+        if(!state.user.length){
+            navigation.replace("Login")
+        }
+
         getAllArt()
             .then(response => {
                 let filteredData = [];
@@ -82,24 +136,13 @@ const HomeScreen = ({ navigation }) => {
                 }
             })
             .catch(error => alert(error))
-    },[query,genreQuery])
+    }, [query, genreQuery])
 
     return (
         <SafeAreaView style={styles.container}>
-            {/* Search Section */}
-            <View style={styles.searchSection}>
-                <AntDesign name="search1" size={20} color="grey" style={styles.searchIcon} />
-                <Input 
-                    placeholder="Search" 
-                    style={styles.searchInput} 
-                    value={query}
-                    onChangeText={(text) => setQuery(text)}
-                />
-                <AntDesign name="close" size={20} color="grey" style={styles.dropSearchIcon} onPress={() => setQuery("")} />
-            </View>
-            
+
             {/* Genre Section */}
-            <View style={{flexDirection:"row"}}>
+            <View style={{ flexDirection: "row" }}>
                 <AntDesign name="close" size={36} color="white" style={styles.dropGenreSelection} onPress={() => setGenreQuery("")} />
                 <ScrollView style={styles.genreSection} horizontal={true}>
                     {genres.map(genre => {
@@ -108,10 +151,26 @@ const HomeScreen = ({ navigation }) => {
                         )
                     })}
                 </ScrollView>
+            </View> 
+
+            {/* Search Section */}
+            <View style={styles.searchSection}>
+                <Text style={styles.resultsFoundText}>{art.length} results</Text>
+                <View style={styles.searchSectionSearchBar}>
+                    <AntDesign name="search1" size={20} color="grey" style={styles.searchIcon} />
+                    <Input
+                        placeholder="Search"
+                        style={styles.searchInput}
+                        value={query}
+                        onChangeText={(text) => setQuery(text)}
+                    />
+                    <AntDesign name="close" size={20} color="grey" style={styles.dropSearchIcon} onPress={() => setQuery("")} />
+                </View>
             </View>
-            <Text style={styles.resultsFoundText}>{art.length} results found</Text>
+            
+
             {/* Main Section */}
-            <ScrollView>
+            <ScrollView ref={scrollRef}>
                 {
                     art.length ? art.map(art => {
                         return (
@@ -149,7 +208,7 @@ const HomeScreen = ({ navigation }) => {
 
                                 <View style={styles.bottomConsole}>
                                     <View style={styles.savedFavorite}>
-                                        <AntDesign name="staro" size={22} color="white" />
+                                        <AntDesign name="staro" size={22} color="white" id={art._id} />
                                         <Text style={{ color: "white", fontSize: 16 }}>{art.savedFavorite}</Text>
                                     </View>
                                     <Moment element={Text} fromNow style={{ color: "white" }}>
@@ -267,6 +326,12 @@ const HomeScreen = ({ navigation }) => {
                 </View>
             </Modal>
 
+            <View style={styles.footer}>
+                <Entypo name="home" size={30} color="white" onPress={checkoutHome} />
+                <Ionicons name="add-circle-outline" size={30} color="white" />
+                <Ionicons name="person" size={30} color="white" onPress={checkoutProfile} />
+            </View>
+
         </SafeAreaView>
     )
 }
@@ -280,7 +345,7 @@ const styles = StyleSheet.create({
     },
 
     resultsFoundText:{
-        color: "white", marginLeft: "auto", marginRight: "auto", marginBottom: 10
+        color: "white", marginLeft: "auto", marginRight: "auto",marginTop:15, fontWeight:"700"
     },
 
     searchSection:{
@@ -288,8 +353,12 @@ const styles = StyleSheet.create({
         width:"94%",
         position:"relative",
         marginLeft:"auto",
-        marginRight:"auto",
-        marginTop:-40
+        marginRight:"auto"
+    },
+
+    searchSectionSearchBar:{
+        flexDirection:"row",
+        width:"76%"
     },
 
     searchIcon:{
@@ -448,6 +517,15 @@ const styles = StyleSheet.create({
         bottom: 0,
         left: 0,
         right: 0
+    },
+
+    footer:{
+        flexDirection:"row",
+        justifyContent:"space-evenly",
+        height:48,
+        padding:5,
+        borderTopColor:"white",
+        borderTopWidth:0.17
     }
 
 });
