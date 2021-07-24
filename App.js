@@ -19,12 +19,10 @@ import { LOGIN } from './utils/actions';
 function WatchAuthenticatedUser() {
   // eslint-disable-next-line no-unused-vars
   const [state, dispatch] = useArtContext();
-  console.log(state)
   useEffect(() => {
     authenticatedUser()
       .then(response => {
         if (response.data) {
-          console.log(response.data)
           dispatch({
             type: LOGIN,
             user: response.data.user_id

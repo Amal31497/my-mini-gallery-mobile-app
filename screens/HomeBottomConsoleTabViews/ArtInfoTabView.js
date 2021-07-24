@@ -39,7 +39,7 @@ const ArtInfoTabView = (props) => {
                 <View style={styles.tags}>
                     {art.tags.map(tag => {
                         return (
-                            <Button title={tag} style={styles.tag} />
+                            <Button key={tag} title={tag} style={styles.tag} />
                         )
                     })}
                 </View>

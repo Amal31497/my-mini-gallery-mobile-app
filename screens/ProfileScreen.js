@@ -25,16 +25,23 @@ const ProfileScreen = ({navigation}) => {
             navigation.replace("Login")
         }
 
-        if(state.user.length > 0){
+        if (state.user.length > 0) {
             getArtist(state.user)
                 .then(response => {
                     setArtist(response.data)
-                    getAllArt()
-                        .then((res) => {
-                            const profileArt = [];
-                            const profileFavorites = [];
+                })
+                .catch(error => alert("Something went wrong!"))
+        }
+
+        setTimeout(() => {
+            if (artist) {
+                getAllArt()
+                    .then(res => {
+                        let profileArt = [];
+                        let profileFavorites = [];
+                        if (res) {
                             res.data.forEach((art) => {
-                                if (response.data.art.includes(art._id)) {
+                                if (artist.art.includes(art._id)) {
                                     profileArt.push({
                                         key: art._id,
                                         id: art._id,
@@ -51,7 +58,7 @@ const ProfileScreen = ({navigation}) => {
                                     });
                                 }
 
-                                if (response.data.favorites.includes(art._id)) {
+                                if (artist.favorites.includes(art._id)) {
                                     profileFavorites.push({
                                         key: art._id,
                                         id: art._id,
@@ -70,13 +77,15 @@ const ProfileScreen = ({navigation}) => {
                             });
                             setImages(profileArt);
                             setFavorites(profileFavorites);
-                        })
-                        .catch((error) => alert("Something went wrong!"));
-                })
-                .catch(error => alert("Something went wrong!"))
-        }
+                        }
+                    })
+                    .catch((error) => alert("Something went wrong!"));
+            }
+        }, 1000)
 
-    },[images,favorites])
+        
+
+    }, [images, favorites, artist])
 
     useLayoutEffect(() => {
         navigation.setOptions({
@@ -161,13 +170,17 @@ const ProfileScreen = ({navigation}) => {
                     {galleryState === "gallery" ?
                         images.map(image => {
                             return (
-                                <Image source={{ uri: image.src }} style={{ height: 100, width: 100, margin: 5 }} />
+                                <View key={image._id}>
+                                    <Image source={{ uri: image.src }} style={{ height: 100, width: 100, margin: 5 }} />
+                                </View>
                             )
                         })
                         :
                         favorites.map(image => {
                             return (
-                                <Image source={{ uri: image.src }} style={{ height: 100, width: 100, margin: 5 }} />
+                                <View key={image._id}>
+                                    <Image source={{ uri: image.src }} style={{ height: 100, width: 100, margin: 5 }} />
+                                </View>
                             )
                         })
                     }

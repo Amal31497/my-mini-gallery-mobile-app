@@ -1,14 +1,14 @@
 import React, { useLayoutEffect, useEffect, useState, useRef } from "react";
 
-import { StyleSheet, Text, View, Image, Modal, FlatList, TouchableWithoutFeedback, TouchableOpacity } from 'react-native';
+import { StyleSheet, Text, View, Image, Modal, FlatList, 
+        TouchableWithoutFeedback, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { Button, Input } from 'react-native-elements';
 import { ScrollView } from "react-native-gesture-handler";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useArtContext } from '../utils/GlobalState';
-import { getAllArt, getArtist, logout, addNewFavoriteArt } from '../utils/API';
+import { getAllArt, getArtist, logout, addNewFavoriteArt, updateArt } from '../utils/API';
 import { LOGOUT } from "../utils/actions";
 import { Entypo, AntDesign, FontAwesome5, Octicons, Ionicons } from '@expo/vector-icons';
-import artistPlaceholder from "../assets/artist.jpg"
 import Moment from 'react-moment';
 
 import ArtInfoTabView from "./HomeBottomConsoleTabViews/ArtInfoTabView";
@@ -26,7 +26,7 @@ const FindArtistAvatar = (props) => {
                     setFoundArtist(response.data.avatar.avatarSrc)
                 }
             })
-            .catch(error => console.log(error))
+            .catch(error => alert(error))
     }, []);
 
     return (
@@ -36,12 +36,13 @@ const FindArtistAvatar = (props) => {
 
 const FindArtist = (props) => {
     const [foundArtist, setFoundArtist] = useState();
+
     useEffect(() => {
         getArtist(props.id)
             .then(response => {
                 setFoundArtist(response.data.username)
             })
-            .catch(error => console.log(error))
+            .catch(error => alert(error))
     }, [])
 
     return (
@@ -49,16 +50,55 @@ const FindArtist = (props) => {
     );
 }
 
+const FindArtistFavorite = (props) => {
+    const [foundArtist, setFoundArtist] = useState();
+    const [selectedFavoriteId, setSelectedFavoriteId] = useState();
+    const [state, dispatch] = useArtContext();
+
+    const findArtist = () => {
+        getArtist(state.user)
+            .then(response => {
+                setFoundArtist(response.data.favorites.includes(props.artId))
+            })
+            .catch(error => alert("Something went wrong!"))
+    }
+
+    useEffect(() => {
+        findArtist();
+    },[props.id, props.artId, selectedFavoriteId])
+
+    const addToFavorites = (event, artId ) => {
+        event.preventDefault();
+        setSelectedFavoriteId(artId);
+        addNewFavoriteArt(state.user, { favorite: selectedFavoriteId })
+            .then(response => {
+                findArtist();
+                console.log(response.data)
+                // updateArt(selectedFavoriteId, { savedFavorite: 1 });
+            })
+            .catch(error => alert("Something went wrong!"))
+        setSelectedFavoriteId("");
+    }
+
+    return(
+        foundArtist === true ?
+            <AntDesign name="star" size={22} color="white" />
+            :
+            <AntDesign name="staro" size={22} color="white" data-id={props.artId} onPress={(event) => addToFavorites(event, props.artId)}  />
+    )
+}
+
 const HomeScreen = ({ navigation }) => {
     const [state, dispatch] = useArtContext();
-    const [query, setQuery] = useState();
-    const [genreQuery, setGenreQuery] = useState();
+    const [query, setQuery] = useState("");
+    const [genreQuery, setGenreQuery] = useState("");
     const [art, setArt] = useState([]);
+    const [originalArt, setOriginalArt] = useState([]);
+    const [filteredArt, setFilteredArt] = useState([]);
     const [consoleModal, setConsoleModal] = useState(false);
     const [rightModal, setRightModal] = useState(false);
     const [selectedArt, setSelectedArt] = useState();
     const [selectedTab, setSelectedTab] = useState("infoTab");
-    const [selectedFavoriteId, setSelectedFavoriteId] = useState([]);
     const genres = ["3D", "AnimeandManga", "ArtisanCraft", "Comic", "DigitalArt", "TraditionalArt", "Customization", "Cosplay", "Fantasy", "FanArt", "PhotoManipulation", "Photography"]
     const scrollRef = useRef(null);
 
@@ -67,14 +107,13 @@ const HomeScreen = ({ navigation }) => {
         
         logout()
             .then(response => {
-                console.log(response);
                 dispatch({
                     type: LOGOUT,
                     user: {}
                 })
                 navigation.replace("Login")
             })
-            .catch(error => console.log(error))
+            .catch(error => alert(error))
     }
 
     const checkoutProfile = (event) => {
@@ -111,17 +150,22 @@ const HomeScreen = ({ navigation }) => {
 
     useEffect(() => {
 
-        // console.log(AsyncStorage.getItem("loggedIn"))
-
-        if(!state.user.length){
+        if (!state.user.length) {
             navigation.replace("Login")
         }
 
         getAllArt()
             .then(response => {
-                let filteredData = [];
-                if (query || genreQuery){
-                    response.data.forEach(art => {
+                setArt(response.data)
+                setOriginalArt(response.data)
+            })
+            .catch(error => alert(error))
+        
+        setTimeout(() => {
+            if (art !== undefined) {
+                if (query.length > 0 || genreQuery.length > 0) {
+                    let filteredData = [];
+                    art.forEach(art => {
                         if (query && genreQuery) {
                             if (art.tags.includes(query.toLowerCase()) && art.genre === genreQuery) filteredData.push(art);
                         } else if (query) {
@@ -130,12 +174,20 @@ const HomeScreen = ({ navigation }) => {
                             if (art.genre === genreQuery) filteredData.push(art)
                         }
                     })
-                    setArt(filteredData)
+                    setFilteredArt(filteredData)
                 } else {
-                    setArt(response.data)
+                    setFilteredArt(originalArt)
                 }
-            })
-            .catch(error => alert(error))
+            }
+        },2000)
+        
+        
+        return () => {
+            setArt([]);
+            setFilteredArt([]);
+            setOriginalArt([]);
+        }
+
     }, [query, genreQuery])
 
     return (
@@ -143,11 +195,11 @@ const HomeScreen = ({ navigation }) => {
 
             {/* Genre Section */}
             <View style={{ flexDirection: "row" }}>
-                <AntDesign name="close" size={36} color="white" style={styles.dropGenreSelection} onPress={() => setGenreQuery("")} />
+                <AntDesign name="close" size={36} color="white" style={styles.dropGenreSelection} onPress={() => {setFilteredArt([]), setGenreQuery("")}} />
                 <ScrollView style={styles.genreSection} horizontal={true}>
                     {genres.map(genre => {
                         return (
-                            <Button title={genre} type="outline" buttonStyle={genre === genreQuery ? styles.genreButtonSelected : styles.genreButton} titleStyle={genre === genreQuery ? styles.genreButtonTitleSelected : styles.genreButtonTitleStyle} onPress={() => { setGenreQuery(genre) }} />
+                            <Button key={genre} title={genre} type="outline" buttonStyle={genre === genreQuery ? styles.genreButtonSelected : styles.genreButton} titleStyle={genre === genreQuery ? styles.genreButtonTitleSelected : styles.genreButtonTitleStyle} onPress={() => { setFilteredArt([]), setGenreQuery(genre) }} />
                         )
                     })}
                 </ScrollView>
@@ -155,14 +207,14 @@ const HomeScreen = ({ navigation }) => {
 
             {/* Search Section */}
             <View style={styles.searchSection}>
-                <Text style={styles.resultsFoundText}>{art.length} results</Text>
+                <Text style={styles.resultsFoundText}>{(query || genreQuery) ? filteredArt.length : art.length} results</Text>
                 <View style={styles.searchSectionSearchBar}>
                     <AntDesign name="search1" size={20} color="grey" style={styles.searchIcon} />
                     <Input
                         placeholder="Search"
                         style={styles.searchInput}
                         value={query}
-                        onChangeText={(text) => setQuery(text)}
+                        onChangeText={(text) => {setFilteredArt([]), setQuery(text)}}
                     />
                     <AntDesign name="close" size={20} color="grey" style={styles.dropSearchIcon} onPress={() => setQuery("")} />
                 </View>
@@ -172,7 +224,7 @@ const HomeScreen = ({ navigation }) => {
             {/* Main Section */}
             <ScrollView ref={scrollRef}>
                 {
-                    art.length ? art.map(art => {
+                    art && ((genreQuery.length > 0 || query.length > 0) ? filteredArt : art).map(art => {
                         return (
                             <View key={art._id}>
 
@@ -208,7 +260,11 @@ const HomeScreen = ({ navigation }) => {
 
                                 <View style={styles.bottomConsole}>
                                     <View style={styles.savedFavorite}>
-                                        <AntDesign name="staro" size={22} color="white" id={art._id} />
+                                        {/* {selectedFavoriteId.includes(art._id) ? 
+                                            <AntDesign name="star" size={22} color="white" />
+                                            : */}
+                                        <FindArtistFavorite id={state.user} artId={art._id} />
+                                        {/* } */}
                                         <Text style={{ color: "white", fontSize: 16 }}>{art.savedFavorite}</Text>
                                     </View>
                                     <Moment element={Text} fromNow style={{ color: "white" }}>
@@ -224,11 +280,17 @@ const HomeScreen = ({ navigation }) => {
 
                             </View>
                         )
-                    })
-                        :
-                        <View style={{marginRight:"auto", marginLeft:"auto", marginTop:140}}>
-                            <Text style={{ color: "white", fontSize: 17, fontWeight: "700", flexWrap: "wrap", marginRight: "auto", marginLeft: "auto" }}>No art was found with these search terms {genreQuery}{" "}{query}</Text>
-                        </View>
+                    })  
+                }
+                {
+                    (genreQuery.length > 0 || query.length > 0) && (!filteredArt.length > 0) && 
+                    <View style={{ marginRight: "auto", marginLeft: "auto", marginTop: 140 }}>
+                        <Text style={{ color: "white", fontSize: 17, fontWeight: "700", flexWrap: "wrap", marginRight: "auto", marginLeft: "auto" }}>No art was found with these search terms {genreQuery}{" "}{query}</Text>
+                    </View>
+                }
+                {
+                    (!art.length && !filteredArt.length) &&
+                    <ActivityIndicator size="large" color="white" style={styles.activityIndicator} />
                 }
             </ScrollView>
 

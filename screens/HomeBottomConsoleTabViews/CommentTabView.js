@@ -22,7 +22,6 @@ const CommentTabView = (props) => {
     useEffect(() => {
         loadComments()
             .then(response => {
-                console.log(comments)
                 let selectedComments = [];
                 response.data.forEach(comment => {
                     if(props.comments.includes(comment._id)){
@@ -57,7 +56,7 @@ const CommentTabView = (props) => {
                 {comments.length > 0 ?
                     comments.map(comment => {
                         return (
-                            <View style={{flexDirection:"row"}}>
+                            <View style={{flexDirection:"row"}} key={comment.id}>
                                 <View style={styles.avatarColumn}>{comment.userInfo.avatar ? <Image source={{ uri: comment.userInfo.avatar.avatarSrc }} style={styles.avatar} /> : null}</View>
                                 <Pressable style={styles.contentColumn} onPress={() => { setReplyModal(true), setSelectedCommentIdReply(comment)}}>
                                     <View style={styles.contentColumnTopRow}>
