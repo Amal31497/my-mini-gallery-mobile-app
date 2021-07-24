@@ -1,15 +1,14 @@
 import React, { useEffect, useState } from "react"
 import { StyleSheet, Text, View, Image, Modal, Pressable, KeyboardAvoidingView } from 'react-native';
 import { Button, Input } from 'react-native-elements';
-import { ScrollView } from "react-native-gesture-handler";
 import { useArtContext } from '../../utils/GlobalState';
 import Moment from 'react-moment';
-import { loadComments } from '../../utils/API';
+import { loadComments, addComment, updateArt, getArtist } from '../../utils/API';
 import { Entypo, AntDesign, FontAwesome5, Octicons, Ionicons } from '@expo/vector-icons';
 
 const CommentTabView = (props) => {
     const [state, dispatch] = useArtContext();
-
+    const [currentUser, setCurrentUser] = useState();
     const [comments, setComments] = useState([]);
 
     const [postCommentModal, setPostCommentModal] = useState(false);
@@ -19,20 +18,66 @@ const CommentTabView = (props) => {
     const [commentReply, setCommentReply] = useState();
     const [selectedCommentIdReply, setSelectedCommentIdReply] = useState("");
 
-    useEffect(() => {
+    const showComments = () => {
         loadComments()
             .then(response => {
                 let selectedComments = [];
                 response.data.forEach(comment => {
-                    if(props.comments.includes(comment._id)){
+                    if (props.comments.includes(comment._id)) {
                         selectedComments.push(comment)
                     }
                 })
                 setComments(selectedComments)
             })
             .catch(error => alert(error))
-    },[props])
+    }
 
+    const findCurrentArtist = () => {
+        getArtist(props.currentUserId)
+            .then(response => {
+                setCurrentUser({
+                    username: response.data.username,
+                    avatar: response.data.avatar,
+                    description: response.data.description,
+                    firstName: response.data.firstName
+                })
+            })
+            .catch(error => alert("Something went wrong!"))
+    }
+
+    useEffect(() => {
+        showComments();
+        findCurrentArtist();
+    },[props, postCommentModal, comments])
+
+    const handleCommentSubmit = (event) => {
+        event.preventDefault();
+
+        // Comment
+        const comment = {
+            content: commentPostInput,
+            // Nesting descriptive artist info in comment schema
+            userInfo: currentUser,
+            date: Date.now(),
+            user: props.currentUserId,
+            art: props.targetArt
+        }
+
+        if (props.targetArt) {
+            addComment(comment)
+                .then(response => {
+                    updateArt(props.targetArt, { _id: response.data._id })
+                        .then(response => {
+                            setCommentPostInput();
+                            setPostCommentModal(false);
+                            props.reloadArt();
+                        })
+                        .catch(error => console.log(error))
+                })
+                .catch(error => console.log(error))
+        }
+        
+    }
 
     return(
         <View>
@@ -58,22 +103,25 @@ const CommentTabView = (props) => {
                         return (
                             <View style={{flexDirection:"row"}} key={comment.id}>
                                 <View style={styles.avatarColumn}>{comment.userInfo.avatar ? <Image source={{ uri: comment.userInfo.avatar.avatarSrc }} style={styles.avatar} /> : null}</View>
-                                <Pressable style={styles.contentColumn} onPress={() => { setReplyModal(true), setSelectedCommentIdReply(comment)}}>
+                                <View style={styles.contentColumn} >
                                     <View style={styles.contentColumnTopRow}>
                                         {comment ? <Text style={{ color: "white", fontWeight: "700" }}>{comment.userInfo.username}</Text> : null}
-                                        <Moment element={Text} fromNow style={{ color: "white" }}>
-                                            {comment.date}
-                                        </Moment>
+                                        <View style={{flexDirection:"row"}}>
+                                            <Moment element={Text} fromNow style={{ color: "white" }}>
+                                                {comment.date}
+                                            </Moment>
+                                            <Text style={{color:"red", marginLeft:5}}>[x]</Text>
+                                        </View>
                                     </View>
-                                    <View style={styles.contentColumnBottomRow}>
+                                    <Pressable style={styles.contentColumnBottomRow} onPress={() => { setReplyModal(true), setSelectedCommentIdReply(comment) }}>
                                         <Text style={{ color: "white", maxWidth: "95%", flexWrap:"wrap" }}>{comment.content}</Text>
                                         {comment.responses.length > 0 ?
                                             <Button titleStyle={{ fontSize: 18, fontWeight: "600" }} buttonStyle={{ backgroundColor: "#007FFF", borderRadius: 40, paddingTop: 1.5, paddintBottom: 1.5, height: 28 }} title={comment.responses.length.toString()} />
                                             :
                                             null
                                         }
-                                    </View>
-                                </Pressable>
+                                    </Pressable>
+                                </View>
                             </View>
                         )
                     })
@@ -139,7 +187,7 @@ const CommentTabView = (props) => {
                             onChangeText={(text) => setCommentPostInput(text)}
                             style={styles.commentReplyInputBox}
                         />
-                        <Button title="Send" />
+                        <Button title="Send" onPress={handleCommentSubmit} />
                     </KeyboardAvoidingView>
                 </View>
             </Modal>

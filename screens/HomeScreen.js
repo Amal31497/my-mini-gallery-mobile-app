@@ -69,22 +69,20 @@ const FindArtistFavorite = (props) => {
 
     const addToFavorites = (event, artId ) => {
         event.preventDefault();
-        setSelectedFavoriteId(artId);
-        addNewFavoriteArt(state.user, { favorite: selectedFavoriteId })
+
+        addNewFavoriteArt(state.user, {favorite: artId})
             .then(response => {
                 findArtist();
-                console.log(response.data)
-                // updateArt(selectedFavoriteId, { savedFavorite: 1 });
+                updateArt(artId, { savedFavorite: 1 });
             })
             .catch(error => alert("Something went wrong!"))
-        setSelectedFavoriteId("");
     }
 
     return(
         foundArtist === true ?
             <AntDesign name="star" size={22} color="white" />
             :
-            <AntDesign name="staro" size={22} color="white" data-id={props.artId} onPress={(event) => addToFavorites(event, props.artId)}  />
+            <AntDesign name="staro" size={22} color="white" onPress={(event) => addToFavorites(event, props.artId)}  />
     )
 }
 
@@ -97,7 +95,7 @@ const HomeScreen = ({ navigation }) => {
     const [filteredArt, setFilteredArt] = useState([]);
     const [consoleModal, setConsoleModal] = useState(false);
     const [rightModal, setRightModal] = useState(false);
-    const [selectedArt, setSelectedArt] = useState();
+    const [selectedArt, setSelectedArt] = useState({});
     const [selectedTab, setSelectedTab] = useState("infoTab");
     const genres = ["3D", "AnimeandManga", "ArtisanCraft", "Comic", "DigitalArt", "TraditionalArt", "Customization", "Cosplay", "Fantasy", "FanArt", "PhotoManipulation", "Photography"]
     const scrollRef = useRef(null);
@@ -180,15 +178,8 @@ const HomeScreen = ({ navigation }) => {
                 }
             }
         },2000)
-        
-        
-        return () => {
-            setArt([]);
-            setFilteredArt([]);
-            setOriginalArt([]);
-        }
 
-    }, [query, genreQuery])
+    }, [query, genreQuery, selectedArt, art])
 
     return (
         <SafeAreaView style={styles.container}>
@@ -220,7 +211,6 @@ const HomeScreen = ({ navigation }) => {
                 </View>
             </View>
             
-
             {/* Main Section */}
             <ScrollView ref={scrollRef}>
                 {
@@ -260,11 +250,7 @@ const HomeScreen = ({ navigation }) => {
 
                                 <View style={styles.bottomConsole}>
                                     <View style={styles.savedFavorite}>
-                                        {/* {selectedFavoriteId.includes(art._id) ? 
-                                            <AntDesign name="star" size={22} color="white" />
-                                            : */}
                                         <FindArtistFavorite id={state.user} artId={art._id} />
-                                        {/* } */}
                                         <Text style={{ color: "white", fontSize: 16 }}>{art.savedFavorite}</Text>
                                     </View>
                                     <Moment element={Text} fromNow style={{ color: "white" }}>
@@ -381,7 +367,7 @@ const HomeScreen = ({ navigation }) => {
                     </View>
                     <ScrollView>
                         {selectedTab === "infoTab" && <ArtInfoTabView art={selectedArt} />}
-                        {selectedTab === "commentTab" && <CommentTabView comments={selectedArt.comments} />}
+                        {selectedTab === "commentTab" && <CommentTabView comments={selectedArt.comments} currentUserId={state.user} targetArt={selectedArt._id} reloadArt={() => {setArt([]), setConsoleModal(false)}} />}
                         {selectedTab === "moreByArtistTab" && <MoreTabView artist={selectedArt.user} allArt={art} artId={selectedArt._id} />}
                         {selectedTab === "reportTab" && <ReportTabView artId={selectedArt._id} />}
                     </ScrollView>
