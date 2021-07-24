@@ -3,7 +3,7 @@ import { StyleSheet, Text, View, Image, Modal, Pressable, KeyboardAvoidingView }
 import { Button, Input } from 'react-native-elements';
 import { useArtContext } from '../../utils/GlobalState';
 import Moment from 'react-moment';
-import { loadComments, addComment, updateArt, getArtist } from '../../utils/API';
+import { loadComments, addComment, updateArt, getArtist, deleteComment } from '../../utils/API';
 import { Entypo, AntDesign, FontAwesome5, Octicons, Ionicons } from '@expo/vector-icons';
 
 const CommentTabView = (props) => {
@@ -68,16 +68,26 @@ const CommentTabView = (props) => {
                 .then(response => {
                     updateArt(props.targetArt, { _id: response.data._id })
                         .then(response => {
-                            setCommentPostInput();
                             setPostCommentModal(false);
-                            props.reloadArt();
                         })
-                        .catch(error => console.log(error))
+                        .catch(error => console.log(error));
+                    loadComments();
                 })
                 .catch(error => console.log(error))
         }
         
     }
+
+    const deleteSelectedComment = (event, id) => {
+        event.preventDefault();
+
+        deleteComment(id)
+            .then(response => {
+                loadComments();
+            })
+            .catch(error => alert("Something went wrong!"))
+    }
+
 
     return(
         <View>
@@ -110,7 +120,7 @@ const CommentTabView = (props) => {
                                             <Moment element={Text} fromNow style={{ color: "white" }}>
                                                 {comment.date}
                                             </Moment>
-                                            <Text style={{color:"red", marginLeft:5}}>[x]</Text>
+                                            <Text style={{color:"red", marginLeft:5}} onPress={(event) => deleteSelectedComment(event,comment._id)}>[x]</Text>
                                         </View>
                                     </View>
                                     <Pressable style={styles.contentColumnBottomRow} onPress={() => { setReplyModal(true), setSelectedCommentIdReply(comment) }}>

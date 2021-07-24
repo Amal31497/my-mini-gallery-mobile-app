@@ -249,19 +249,23 @@ const HomeScreen = ({ navigation }) => {
                                 />
 
                                 <View style={styles.bottomConsole}>
+
                                     <View style={styles.savedFavorite}>
                                         <FindArtistFavorite id={state.user} artId={art._id} />
                                         <Text style={{ color: "white", fontSize: 16 }}>{art.savedFavorite}</Text>
                                     </View>
+
                                     <Moment element={Text} fromNow style={{ color: "white" }}>
                                         {art.date}
                                     </Moment>
+
                                     <View style={styles.savedFavorite} >
                                         <TouchableOpacity onPress={() => { setConsoleModal(true), setSelectedArt(art), setSelectedTab("commentTab") }} hitSlop={{ top: 50, bottom: 50, left: 50, right: 50 }}>
                                             <FontAwesome5 name="comments" size={22} color="white" />
                                         </TouchableOpacity>
                                         <Text style={{ color: "white", fontSize: 16 }}>{art.comments.length}</Text>
                                     </View>
+                                    
                                 </View>
 
                             </View>
@@ -367,7 +371,7 @@ const HomeScreen = ({ navigation }) => {
                     </View>
                     <ScrollView>
                         {selectedTab === "infoTab" && <ArtInfoTabView art={selectedArt} />}
-                        {selectedTab === "commentTab" && <CommentTabView comments={selectedArt.comments} currentUserId={state.user} targetArt={selectedArt._id} reloadArt={() => {setArt([]), setConsoleModal(false)}} />}
+                        {selectedTab === "commentTab" && <CommentTabView comments={selectedArt.comments} currentUserId={state.user} targetArt={selectedArt._id} reloadArt={ () => {setArt([]), setConsoleModal(false)} } />}
                         {selectedTab === "moreByArtistTab" && <MoreTabView artist={selectedArt.user} allArt={art} artId={selectedArt._id} />}
                         {selectedTab === "reportTab" && <ReportTabView artId={selectedArt._id} />}
                     </ScrollView>
