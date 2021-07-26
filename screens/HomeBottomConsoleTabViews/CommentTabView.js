@@ -33,16 +33,12 @@ const CommentTabView = (props) => {
     }
 
     const findCurrentArtist = () => {
-        getArtist(props.currentUserId)
-            .then(response => {
-                setCurrentUser({
-                    username: response.data.username,
-                    avatar: response.data.avatar,
-                    description: response.data.description,
-                    firstName: response.data.firstName
-                })
-            })
-            .catch(error => alert("Something went wrong!"))
+        setCurrentUser({
+            username: state.userInfo.username,
+            avatar: state.userInfo.avatar,
+            description: state.userInfo.description,
+            firstName: state.userInfo.firstName
+        })
     }
 
     useEffect(() => {
@@ -63,19 +59,19 @@ const CommentTabView = (props) => {
             art: props.targetArt
         }
 
-        if (props.targetArt) {
+        if (comment.art && comment.user) {
             addComment(comment)
                 .then(response => {
                     updateArt(props.targetArt, { _id: response.data._id })
                         .then(response => {
                             setPostCommentModal(false);
+                            loadComments();
                         })
                         .catch(error => console.log(error));
-                    loadComments();
                 })
                 .catch(error => console.log(error))
         }
-        
+
     }
 
     const deleteSelectedComment = (event, id) => {
@@ -92,7 +88,7 @@ const CommentTabView = (props) => {
     return(
         <View>
             <Text style={styles.title}>Comments</Text>
-            {state.user.length > 0 ?
+            {state.user.user_id.length > 0 ?
                 <Button
                     buttonStyle={styles.subtitleButton}
                     titleStyle={styles.subtitleTitle}
@@ -111,7 +107,7 @@ const CommentTabView = (props) => {
                 {comments.length > 0 ?
                     comments.map(comment => {
                         return (
-                            <View style={{flexDirection:"row"}} key={comment.id}>
+                            <View style={{flexDirection:"row"}} key={comment._id}>
                                 <View style={styles.avatarColumn}>{comment.userInfo.avatar ? <Image source={{ uri: comment.userInfo.avatar.avatarSrc }} style={styles.avatar} /> : null}</View>
                                 <View style={styles.contentColumn} >
                                     <View style={styles.contentColumnTopRow}>
@@ -120,7 +116,7 @@ const CommentTabView = (props) => {
                                             <Moment element={Text} fromNow style={{ color: "white" }}>
                                                 {comment.date}
                                             </Moment>
-                                            <Text style={{color:"red", marginLeft:5}} onPress={(event) => deleteSelectedComment(event,comment._id)}>[x]</Text>
+                                            <Button title="del" buttonStyle={{ marginLeft: 5, backgroundColor: "transparent", padding:0, height:20, width:20, marginTop:-4 }} titleStyle={{ color: "red", alignSelf:"center", fontSize:15 }} onPress={(event) => deleteSelectedComment(event, comment._id)} />
                                         </View>
                                     </View>
                                     <Pressable style={styles.contentColumnBottomRow} onPress={() => { setReplyModal(true), setSelectedCommentIdReply(comment) }}>

@@ -1,3 +1,7 @@
 export const LOGIN = "LOGIN"
 export const LOGOUT = "LOGOUT"
-export const RUN_QUERY = "RUN_QUERY"
+export const GET_ALL_ART = "GET_ALL_ART"
+export const GET_ARTIST = "GET_ARTIST"
+export const GET_ARTIST_ART = "GET_ARTIST_ART"
+export const GET_ARTIST_FAVORITES = "GET_ARTIST_FAVORITES"
+export const UPDATE_ARTIST = "UPDATE_ARTIST"

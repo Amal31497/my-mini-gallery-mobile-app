@@ -15,7 +15,7 @@ const  LoginScreen = ({ navigation }) => {
     const [password, setPassword] = useState("");
 
     useEffect(() => {
-        if (state.user.length > 0) {
+        if (state.user) {
             navigation.replace("Home")
         }
     },[state.user])
@@ -28,9 +28,10 @@ const  LoginScreen = ({ navigation }) => {
         })
         .then(response => {
             if(response){
+
                 dispatch({
                     type: LOGIN,
-                    user: response.data.user.user_id
+                    user: response.data.user
                 })
 
                 navigation.replace("Home")

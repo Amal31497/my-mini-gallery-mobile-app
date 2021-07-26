@@ -21,10 +21,6 @@ const ProfileScreen = ({navigation}) => {
 
     useEffect(() => {
 
-        if (!state.user.length) {
-            navigation.replace("Login")
-        }
-
         if (state.user.length > 0) {
             getArtist(state.user)
                 .then(response => {
@@ -170,7 +166,7 @@ const ProfileScreen = ({navigation}) => {
                     {galleryState === "gallery" ?
                         images.map(image => {
                             return (
-                                <View key={image._id}>
+                                <View key={image.key}>
                                     <Image source={{ uri: image.src }} style={{ height: 100, width: 100, margin: 5 }} />
                                 </View>
                             )

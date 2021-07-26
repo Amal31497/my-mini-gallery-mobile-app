@@ -6,17 +6,17 @@ import { getArtist } from '../../utils/API';
 const ArtInfoTabView = (props) => {
 
     const art = props.art
-    const [artist, setArtist] = useState();
-
-    useEffect(() => {
-        if (art) {
-            getArtist(art.user)
-                .then(response => {
-                    setArtist(response.data)
-                })
-                .catch(error => alert("Could not find an artist for this posting :("))
-        }
-    }, [props])
+    const artist = props.user
+    // const [artist, setArtist] = useState();
+    // useEffect(() => {
+    //     if (art) {
+    //         getArtist(art.user)
+    //             .then(response => {
+    //                 setArtist(response.data)
+    //             })
+    //             .catch(error => alert("Could not find an artist for this posting :("))
+    //     }
+    // }, [art])
 
     return (
         artist ?

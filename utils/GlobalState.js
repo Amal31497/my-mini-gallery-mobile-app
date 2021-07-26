@@ -1,9 +1,11 @@
-import { NavigationContainer } from '@react-navigation/native';
+import { getActionFromState, NavigationContainer } from '@react-navigation/native';
 import React, { createContext, useReducer, useContext, useEffect } from 'react';
 // Actions
 import {
     LOGIN,
-    LOGOUT
+    LOGOUT,
+    GET_ALL_ART,
+    GET_ARTIST
 } from "./actions"
 
 // Global context init
@@ -21,7 +23,19 @@ const reducer = (state, action) => {
         case LOGOUT:
             return {
                 ...state,
-                user: {}
+                user:"",
+                allArt:[],
+                userInfo:{}
+            }
+        case GET_ALL_ART:
+            return {
+                ...state,
+                allArt: action.allArt
+            }
+        case GET_ARTIST:
+            return {
+                ...state,
+                userInfo: action.userInfo
             }
         default:
             return state
@@ -33,7 +47,9 @@ const reducer = (state, action) => {
 // Provider init
 const ArtProvider = ({ value = {}, ...props }) => {
     const [state, dispatch] = useReducer(reducer, {
-        user: {}
+        user:"",
+        userInfo:{},
+        allArt:[]
     })
 
     return <Provider value={[state, dispatch]} {...props} />

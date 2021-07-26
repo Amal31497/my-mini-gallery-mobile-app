@@ -23,13 +23,13 @@ const MoreTabView = (props) => {
     return (
         moreByArtist ?
             <View>
-                <Text Text style={styles.tabTitle}>More by Author</Text>
+                <Text Text style={styles.tabTitle}>More by {props.username}</Text>
                 <ScrollView>
                     {moreByArtist ?
                         <View style={styles.imageWrapper}>
                             {moreByArtist.map(art => {
                                 return (
-                                    <Image source={{ uri: art.src }} id={art._id} style={styles.image} />
+                                    <Image key={art._id} source={{ uri: art.src }} id={art._id} style={styles.image} />
                                     ||
                                     <ActivityIndicator size="large" color="white"  />
                                 )
@@ -64,7 +64,8 @@ const styles = StyleSheet.create({
         flexWrap:"wrap",
         width:330,
         marginLeft: "auto",
-        marginRight: "auto"
+        marginRight: "auto",
+        marginBottom:50
     },
 
     image:{

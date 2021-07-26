@@ -22,16 +22,17 @@ function WatchAuthenticatedUser() {
   useEffect(() => {
     authenticatedUser()
       .then(response => {
-        if (response.data) {
+        // console.log(response.data)
+        if(response){
           dispatch({
             type: LOGIN,
-            user: response.data.user_id
-          });
+            user: response.data.user
+          }); 
         }
       })
       .catch(err => console.error(err))
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  },[])
+  }, [])
   return <></>;
 }
 
