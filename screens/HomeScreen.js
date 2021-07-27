@@ -164,6 +164,8 @@ const HomeScreen = ({ navigation }) => {
         setFilteredArt(preFilteredArt);
     },[query, genreQuery])
 
+    // console.log(state)
+
     return (
         state.userInfo && 
         <SafeAreaView style={styles.container}>
@@ -353,7 +355,7 @@ const HomeScreen = ({ navigation }) => {
                     </View>
                     <ScrollView>
                         {selectedTab === "infoTab" && <ArtInfoTabView art={selectedArt} user={selectedArtUser} />}
-                        {selectedTab === "commentTab" && <CommentTabView comments={selectedArt.comments} targetArt={selectedArt._id} />}
+                        {selectedTab === "commentTab" && <CommentTabView allComments={state.comments} comments={selectedArt.comments} targetArt={selectedArt._id} />}
                         {selectedTab === "moreByArtistTab" && <MoreTabView artist={selectedArt.user} allArt={state.allArt} artId={selectedArt._id} username={selectedArtUser.username} />}
                         {selectedTab === "reportTab" && <ReportTabView artId={selectedArt._id} />}
                     </ScrollView>

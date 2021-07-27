@@ -11,7 +11,7 @@ const CommentTabView = (props) => {
     const [state, dispatch] = useArtContext();
     const [currentUser, setCurrentUser] = useState();
     const [comments, setComments] = useState([]);
-
+    const [targetArtCommentIds, setTargetArtCommentIds] = useState(props.comments);
     const [postCommentModal, setPostCommentModal] = useState(false);
     const [commentPostInput, setCommentPostInput] = useState("");
 
@@ -21,8 +21,8 @@ const CommentTabView = (props) => {
 
     const showComments = () => {
         let filteredComments = [];
-        state.comments.forEach(comment => {
-            if(props.comments.includes(comment._id)){
+        props.allComments.forEach(comment => {
+            if(targetArtCommentIds.includes(comment._id)){
                 filteredComments.push(comment)
             }
         })
@@ -37,11 +37,6 @@ const CommentTabView = (props) => {
             firstName: state.userInfo.firstName
         })
     }
-
-    useEffect(() => {
-        showComments();
-        findCurrentArtist();
-    },[props, postCommentModal])
 
     const handleCommentSubmit = (event) => {
         event.preventDefault();
@@ -59,22 +54,23 @@ const CommentTabView = (props) => {
         if (comment.art && comment.user) {
             addComment(comment)
                 .then(response => {
-                    console.log(response.data)
+                    // console.log(response.data)
+
                     dispatch({
                         type:ADD_COMMENT,
                         comment:response.data
                     })
-                    setPostCommentModal(false);
-                    loadComments();
+                    
                     updateArt(props.targetArt, { _id: response.data._id })
                         .then(response => {
-                            console.log(response.data)
+                            setTargetArtCommentIds(response.data.comments);
+                            setPostCommentModal(false);
                         })
                         .catch(error => console.log(error));
                 })
                 .catch(error => console.log(error))
         }
-
+        
     }
 
     const deleteSelectedComment = (event, id) => {
@@ -87,6 +83,12 @@ const CommentTabView = (props) => {
             .catch(error => alert("Something went wrong!"))
     }
 
+    useEffect(() => {
+        showComments();
+        findCurrentArtist();
+    }, [props.allComments, targetArtCommentIds, postCommentModal])
+
+    console.log(comments)
 
     return(
         <View>

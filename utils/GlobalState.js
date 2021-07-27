@@ -59,7 +59,7 @@ const reducer = (state, action) => {
         case ADD_COMMENT:
             return {
                 ...state,
-                comments: [...state.comments, action.comment]
+                comments: [action.comment ,...state.comments]
             }
         default:
             return state
