@@ -1,11 +1,15 @@
 import { getActionFromState, NavigationContainer } from '@react-navigation/native';
-import React, { createContext, useReducer, useContext, useEffect } from 'react';
+import React, { createContext, useReducer, useContext } from 'react';
 // Actions
 import {
     LOGIN,
     LOGOUT,
     GET_ALL_ART,
-    GET_ARTIST
+    GET_ARTIST,
+    UPDATE_ARTIST_FAVORITES,
+    UPDATE_ART,
+    GET_ALL_COMMENTS,
+    ADD_COMMENT
 } from "./actions"
 
 // Global context init
@@ -32,10 +36,30 @@ const reducer = (state, action) => {
                 ...state,
                 allArt: action.allArt
             }
+        case UPDATE_ART:
+            return {
+                ...state,
+                allArt: action.allArt
+            }
         case GET_ARTIST:
             return {
                 ...state,
                 userInfo: action.userInfo
+            }
+        case UPDATE_ARTIST_FAVORITES:
+            return {
+                ...state,
+                userInfo: action.userInfo
+            }
+        case GET_ALL_COMMENTS:
+            return {
+                ...state,
+                comments: action.comments
+            }
+        case ADD_COMMENT:
+            return {
+                ...state,
+                comments: [...state.comments, action.comment]
             }
         default:
             return state
@@ -49,7 +73,8 @@ const ArtProvider = ({ value = {}, ...props }) => {
     const [state, dispatch] = useReducer(reducer, {
         user:"",
         userInfo:{},
-        allArt:[]
+        allArt:[],
+        comments:[]
     })
 
     return <Provider value={[state, dispatch]} {...props} />

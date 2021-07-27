@@ -4,7 +4,6 @@ import { Button, Input } from 'react-native-elements';
 import { Entypo, AntDesign, FontAwesome5, Octicons, Ionicons } from '@expo/vector-icons';
 import { ScrollView } from "react-native-gesture-handler";
 import { useArtContext } from '../utils/GlobalState';
-import { getArtist, getAllArt } from "../utils/API";
 import Moment from 'react-moment';
 
 // import ArtInfoTabView from "./HomeBottomConsoleTabViews/ArtInfoTabView";
@@ -14,74 +13,57 @@ import Moment from 'react-moment';
 
 const ProfileScreen = ({navigation}) => {
     const [state, dispatch] = useArtContext();
-    const [artist, setArtist] = useState();
     const [galleryState, setGalleryState] = useState("gallery");
     const [images, setImages] = useState([]);
     const [favorites, setFavorites] = useState([]);
 
     useEffect(() => {
+        if (state.userInfo) {
+            let profileArt = [];
+            let profileFavorites = [];
 
-        if (state.user.length > 0) {
-            getArtist(state.user)
-                .then(response => {
-                    setArtist(response.data)
-                })
-                .catch(error => alert("Something went wrong!"))
+            state.allArt.forEach(art => {
+
+                if (state.userInfo.art.includes(art._id)) {
+                    profileArt.push({
+                        key: art._id,
+                        id: art._id,
+                        title: art.title,
+                        description: art.description,
+                        comments: art.comments,
+                        genre: art.genre,
+                        user: art.user,
+                        src: art.src,
+                        height: art.height,
+                        width: art.width,
+                        heightRatio: art.heightRatio,
+                        widthRatio: art.widthRatio
+                    });
+                }
+
+                if (state.userInfo.favorites.includes(art._id)) {
+                    profileFavorites.push({
+                        key: art._id,
+                        id: art._id,
+                        title: art.title,
+                        description: art.description,
+                        comments: art.comments,
+                        genre: art.genre,
+                        user: art.user,
+                        src: art.src,
+                        height: art.height,
+                        width: art.width,
+                        heightRatio: art.heightRatio,
+                        widthRatio: art.widthRatio
+                    });
+                }
+
+            })
+            setImages(profileArt);
+            setFavorites(profileFavorites);
         }
 
-        setTimeout(() => {
-            if (artist) {
-                getAllArt()
-                    .then(res => {
-                        let profileArt = [];
-                        let profileFavorites = [];
-                        if (res) {
-                            res.data.forEach((art) => {
-                                if (artist.art.includes(art._id)) {
-                                    profileArt.push({
-                                        key: art._id,
-                                        id: art._id,
-                                        title: art.title,
-                                        description: art.description,
-                                        comments: art.comments,
-                                        genre: art.genre,
-                                        user: art.user,
-                                        src: art.src,
-                                        height: art.height,
-                                        width: art.width,
-                                        heightRatio: art.heightRatio,
-                                        widthRatio: art.widthRatio
-                                    });
-                                }
-
-                                if (artist.favorites.includes(art._id)) {
-                                    profileFavorites.push({
-                                        key: art._id,
-                                        id: art._id,
-                                        title: art.title,
-                                        description: art.description,
-                                        comments: art.comments,
-                                        genre: art.genre,
-                                        user: art.user,
-                                        src: art.src,
-                                        height: art.height,
-                                        width: art.width,
-                                        heightRatio: art.heightRatio,
-                                        widthRatio: art.widthRatio
-                                    });
-                                }
-                            });
-                            setImages(profileArt);
-                            setFavorites(profileFavorites);
-                        }
-                    })
-                    .catch((error) => alert("Something went wrong!"));
-            }
-        }, 1000)
-
-        
-
-    }, [images, favorites, artist])
+    },[state.userInfo])
 
     useLayoutEffect(() => {
         navigation.setOptions({
@@ -115,33 +97,32 @@ const ProfileScreen = ({navigation}) => {
             <ScrollView>
 
                 <View style={styles.avatarWrapper}>
-                    {artist && artist.avatar ?
-                        <Image source={{ uri: artist.avatar.avatarSrc }} style={styles.Avatar} />
+                    {state.userInfo.avatar ?
+                        <Image source={{ uri: state.userInfo.avatar.avatarSrc }} style={styles.Avatar} />
                         :
                         <Image source={{ uri: "../assets/artist.jpg" }} style={styles.Avatar} />
                     }
                 </View>
                 <View style={styles.artistTextInfoWrapper}>
-                    {state.user.length > 0 ?
+                    {state.user.user_id.length > 0 ?
                         <View style={{flexDirection:"row", alignSelf:"center"}}>
                             <Button title="Update" buttonStyle={{ backgroundColor: "transparent", marginBottom: 10 }} titleStyle={{ color: "#007FFF" }} onPress={() => {navigation.navigate("Update Profile")}} />
                             <Button title="Delete" buttonStyle={{ backgroundColor: "transparent", marginBottom: 10 }} titleStyle={{ color: "#ff6961" }} />
                         </View>
                         :
                         <View>
-                            <Button title="Log In" />
-                            <Text>{" "} to update</Text>
+                            <Button title="Log In to Update" />
                         </View>
                     }
-                    {artist ? <Text style={styles.artistTextInfo}>{artist.firstName}</Text> : null}
-                    {artist ? <Text style={styles.artistTextInfo}>{artist.username}</Text> : null}
-                    {artist ? <Text style={styles.artistTextInfo}>
-                        User since <Moment element={Text} format="MMMM-DD/YYYY">{artist.date}</Moment>
+                    {state.userInfo ? <Text style={styles.artistTextInfo}>{state.userInfo.firstName}</Text> : null}
+                    {state.userInfo ? <Text style={styles.artistTextInfo}>{state.userInfo.username}</Text> : null}
+                    {state.userInfo ? <Text style={styles.artistTextInfo}>
+                        User since <Moment element={Text} format="MMMM-DD/YYYY">{state.userInfo.date}</Moment>
                     </Text> : null}
                 </View>
                 <View style={styles.artistDescriptionTextWrapper}>
-                    {artist ? <Text style={styles.artistDescriptionText}>
-                        {artist.description}
+                    {state.userInfo ? <Text style={styles.artistDescriptionText}>
+                        {state.userInfo.description}
                     </Text> : null}
                 </View>
 
@@ -163,18 +144,19 @@ const ProfileScreen = ({navigation}) => {
                 </View>
 
                 <View style={styles.imageWrapper}>
-                    {galleryState === "gallery" ?
-                        images.map(image => {
+                    {
+                        galleryState === "gallery" && images.map(image => {
                             return (
                                 <View key={image.key}>
                                     <Image source={{ uri: image.src }} style={{ height: 100, width: 100, margin: 5 }} />
                                 </View>
                             )
                         })
-                        :
-                        favorites.map(image => {
+                    }
+                    {
+                        galleryState === "favorites" && favorites.map(image => {
                             return (
-                                <View key={image._id}>
+                                <View key={image.key}>
                                     <Image source={{ uri: image.src }} style={{ height: 100, width: 100, margin: 5 }} />
                                 </View>
                             )

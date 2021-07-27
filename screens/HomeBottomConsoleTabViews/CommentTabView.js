@@ -4,6 +4,7 @@ import { Button, Input } from 'react-native-elements';
 import { useArtContext } from '../../utils/GlobalState';
 import Moment from 'react-moment';
 import { loadComments, addComment, updateArt, getArtist, deleteComment } from '../../utils/API';
+import { ADD_COMMENT } from "../../utils/actions";
 import { Entypo, AntDesign, FontAwesome5, Octicons, Ionicons } from '@expo/vector-icons';
 
 const CommentTabView = (props) => {
@@ -19,17 +20,13 @@ const CommentTabView = (props) => {
     const [selectedCommentIdReply, setSelectedCommentIdReply] = useState("");
 
     const showComments = () => {
-        loadComments()
-            .then(response => {
-                let selectedComments = [];
-                response.data.forEach(comment => {
-                    if (props.comments.includes(comment._id)) {
-                        selectedComments.push(comment)
-                    }
-                })
-                setComments(selectedComments)
-            })
-            .catch(error => alert(error))
+        let filteredComments = [];
+        state.comments.forEach(comment => {
+            if(props.comments.includes(comment._id)){
+                filteredComments.push(comment)
+            }
+        })
+        setComments(filteredComments);
     }
 
     const findCurrentArtist = () => {
@@ -44,28 +41,34 @@ const CommentTabView = (props) => {
     useEffect(() => {
         showComments();
         findCurrentArtist();
-    },[props, postCommentModal, comments])
+    },[props, postCommentModal])
 
     const handleCommentSubmit = (event) => {
         event.preventDefault();
 
         // Comment
-        const comment = {
+        let comment = {
             content: commentPostInput,
             // Nesting descriptive artist info in comment schema
             userInfo: currentUser,
             date: Date.now(),
-            user: props.currentUserId,
+            user: state.user.user_id,
             art: props.targetArt
         }
 
         if (comment.art && comment.user) {
             addComment(comment)
                 .then(response => {
+                    console.log(response.data)
+                    dispatch({
+                        type:ADD_COMMENT,
+                        comment:response.data
+                    })
+                    setPostCommentModal(false);
+                    loadComments();
                     updateArt(props.targetArt, { _id: response.data._id })
                         .then(response => {
-                            setPostCommentModal(false);
-                            loadComments();
+                            console.log(response.data)
                         })
                         .catch(error => console.log(error));
                 })

@@ -19,7 +19,7 @@ const ArtInfoTabView = (props) => {
     // }, [art])
 
     return (
-        artist ?
+        (artist && art) ?
             <View style={styles.infoTabContainer}>
                 <Text style={styles.tabTitle}>About Art</Text>
                 <View style={styles.infoSection}>
@@ -37,7 +37,7 @@ const ArtInfoTabView = (props) => {
                 </View>
 
                 <View style={styles.tags}>
-                    {art.tags.map(tag => {
+                    {art.tags && art.tags.map(tag => {
                         return (
                             <Button key={tag} title={tag} style={styles.tag} />
                         )

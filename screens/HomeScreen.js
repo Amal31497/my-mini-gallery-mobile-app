@@ -6,8 +6,8 @@ import { Button, Input } from 'react-native-elements';
 import { ScrollView } from "react-native-gesture-handler";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useArtContext } from '../utils/GlobalState';
-import { getAllArt, getArtist, logout, addNewFavoriteArt, updateArt } from '../utils/API';
-import { GET_ALL_ART, GET_ARTIST, LOGOUT } from "../utils/actions";
+import { getAllArt, getArtist, logout, addNewFavoriteArt, updateArt, loadComments } from '../utils/API';
+import { GET_ALL_ART, GET_ARTIST, LOGOUT, UPDATE_ARTIST_FAVORITES, GET_ALL_COMMENTS } from "../utils/actions";
 import { Entypo, AntDesign, FontAwesome5, Octicons, Ionicons } from '@expo/vector-icons';
 import Moment from 'react-moment';
 
@@ -56,7 +56,7 @@ const HomeScreen = ({ navigation }) => {
 
     const checkoutArt = (event, art) => {
         event.preventDefault();
-        
+        setSelectedArt(art)
         getArtist(art.user)
             .then(response => {
                 if(response.data){
@@ -91,17 +91,35 @@ const HomeScreen = ({ navigation }) => {
                 })
     
             })
-            .catch(error => console.log(error))
+            .catch(error => alert(error))
+    }
+
+    const getAllComments = () => {
+        loadComments()
+            .then(response => {
+                dispatch({
+                    type: GET_ALL_COMMENTS,
+                    comments: response.data
+                })
+            })
+            .catch(error => alert(error))
     }
 
     const queryArt = () => {
         
     }
 
-    const addFavorite = (event) => {
+    const addFavorite = (event, artId) => {
         event.preventDefault();
-
-
+        updateArt(artId, { savedFavorite: 1 })
+        addNewFavoriteArt(state.user.user_id, {favorite: artId})
+            .then(response => {
+                dispatch({
+                    type:UPDATE_ARTIST_FAVORITES,
+                    userInfo: response.data
+                })
+            })
+            .catch(error => alert(error))
     }
 
     useLayoutEffect(() => {
@@ -124,10 +142,11 @@ const HomeScreen = ({ navigation }) => {
             }
         })
     }, [navigation])
-
-    useEffect(() => {    
-        findArtist();   
+    
+    useEffect(() => {      
+        findArtist(); 
         getGlobalArt();
+        getAllComments();
         let preFilteredArt = [];
         if (query.length > 0 && genreQuery.length > 0) {
             state.allArt.forEach(art => {
@@ -144,7 +163,6 @@ const HomeScreen = ({ navigation }) => {
         }
         setFilteredArt(preFilteredArt);
     },[query, genreQuery])
-
 
     return (
         state.userInfo && 
@@ -216,7 +234,7 @@ const HomeScreen = ({ navigation }) => {
                                         {state.userInfo.favorites.includes(art._id) ? 
                                             <AntDesign name="star" size={22} color="white" />
                                             :
-                                            <AntDesign name="staro" size={22} color="white"  />}
+                                            <AntDesign name="staro" size={22} color="white" onPress={(event) => addFavorite(event,art._id)} />}
                                         <Text style={{ color: "white", fontSize: 16 }}>{art.savedFavorite}</Text>
                                     </View>
 
@@ -225,7 +243,7 @@ const HomeScreen = ({ navigation }) => {
                                     </Moment>
 
                                     <View style={styles.savedFavorite} >
-                                        <TouchableOpacity onPress={() => { setSelectedArt(art), setConsoleModal(true), setSelectedTab("commentTab") }} hitSlop={{ top: 50, bottom: 50, left: 50, right: 50 }}>
+                                        <TouchableOpacity onPress={(event) => { checkoutArt(event, art), setConsoleModal(true), setSelectedTab("commentTab") }} hitSlop={{ top: 50, bottom: 50, left: 50, right: 50 }}>
                                             <FontAwesome5 name="comments" size={22} color="white" />
                                         </TouchableOpacity>
                                     </View>
@@ -254,7 +272,7 @@ const HomeScreen = ({ navigation }) => {
                 visible={rightModal}
             >
 
-                <TouchableWithoutFeedback onPress={() => { setRightModal(false) }}>
+                <TouchableWithoutFeedback onPress={() => { setRightModal(false), setSelectedArt({}),setSelectedArtUser({})  }}>
                     <View style={styles.modalOverlay} />
                 </TouchableWithoutFeedback>
 
@@ -292,7 +310,7 @@ const HomeScreen = ({ navigation }) => {
                 transparent={true}
                 visible={consoleModal}
             >
-                <TouchableWithoutFeedback onPress={() => { setConsoleModal(false) }}>
+                <TouchableWithoutFeedback onPress={() => { setConsoleModal(false), setSelectedArtUser({}), setSelectedArt({}) }}>
                     <View style={styles.modalOverlay} />
                 </TouchableWithoutFeedback>
                 <View style={styles.consoleModalWrapper}>
