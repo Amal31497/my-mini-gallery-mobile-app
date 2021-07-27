@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react"
-import { StyleSheet, Text, View, Image, Modal, Pressable, KeyboardAvoidingView } from 'react-native';
+import { StyleSheet, Text, View, Image, Modal, Pressable, KeyboardAvoidingView, TouchableWithoutFeedback } from 'react-native';
 import { Button, Input } from 'react-native-elements';
 import { useArtContext } from '../../utils/GlobalState';
 import Moment from 'react-moment';
@@ -12,10 +12,12 @@ const CommentTabView = (props) => {
     const [currentUser, setCurrentUser] = useState();
     const [comments, setComments] = useState([]);
     const [targetArtCommentIds, setTargetArtCommentIds] = useState(props.comments);
-    const [postCommentModal, setPostCommentModal] = useState(false);
-    const [commentPostInput, setCommentPostInput] = useState("");
 
+    const [commentPostInput, setCommentPostInput] = useState("");
+    const [postCommentModal, setPostCommentModal] = useState(false);
     const [replyModal, setReplyModal] = useState(false);
+    const [areYouSureModal, setAreYourSureModal] = useState(false);
+    const [selectedCommentIdForDeletion, setSelectedCommentIdForDeletion] = useState("");
     const [commentReply, setCommentReply] = useState();
     const [selectedCommentIdReply, setSelectedCommentIdReply] = useState("");
 
@@ -54,7 +56,6 @@ const CommentTabView = (props) => {
         if (comment.art && comment.user) {
             addComment(comment)
                 .then(response => {
-                    // console.log(response.data)
 
                     dispatch({
                         type:ADD_COMMENT,
@@ -66,9 +67,9 @@ const CommentTabView = (props) => {
                             setTargetArtCommentIds(response.data.comments);
                             setPostCommentModal(false);
                         })
-                        .catch(error => console.log(error));
+                        .catch(error => alert(error));
                 })
-                .catch(error => console.log(error))
+                .catch(error => alert(error))
         }
         
     }
@@ -78,17 +79,17 @@ const CommentTabView = (props) => {
 
         deleteComment(id)
             .then(response => {
+                let deletedCommentId = targetArtCommentIds.indexOf(response.data._id);
+                setTargetArtCommentIds([targetArtCommentIds.splice(deletedCommentId, 1), ...targetArtCommentIds]);
                 loadComments();
             })
-            .catch(error => alert("Something went wrong!"))
+            .catch(error => alert(error))
     }
 
     useEffect(() => {
         showComments();
         findCurrentArtist();
     }, [props.allComments, targetArtCommentIds, postCommentModal])
-
-    console.log(comments)
 
     return(
         <View>
@@ -121,7 +122,12 @@ const CommentTabView = (props) => {
                                             <Moment element={Text} fromNow style={{ color: "white" }}>
                                                 {comment.date}
                                             </Moment>
-                                            <Button title="del" buttonStyle={{ marginLeft: 5, backgroundColor: "transparent", padding:0, height:20, width:20, marginTop:-4 }} titleStyle={{ color: "red", alignSelf:"center", fontSize:15 }} onPress={(event) => deleteSelectedComment(event, comment._id)} />
+                                            <Button 
+                                                title="del" 
+                                                buttonStyle={{ marginLeft: 5, backgroundColor: "transparent", padding:0, height:20, width:20, marginTop:-4 }} 
+                                                titleStyle={{ color: "red", alignSelf:"center", fontSize:15 }} 
+                                                onPress={() => {setSelectedCommentIdForDeletion(comment._id), setAreYourSureModal(true)}} 
+                                            />
                                         </View>
                                     </View>
                                     <Pressable style={styles.contentColumnBottomRow} onPress={() => { setReplyModal(true), setSelectedCommentIdReply(comment) }}>
@@ -203,6 +209,24 @@ const CommentTabView = (props) => {
                 </View>
             </Modal>
             {/* Post Comment Modal End */}
+
+            <Modal
+                animationType="slide"
+                transparent={true}
+                visible={areYouSureModal}
+            >
+                <TouchableWithoutFeedback onPress={() => setAreYourSureModal(false)}>
+                    <View style={styles.modalOverlay} />
+                </TouchableWithoutFeedback>
+
+                <View style={styles.areYourSureModalWrapper}>
+                    <Text style={{color:"white", marginTop:20, fontSize:"16", fontWeight:"700"}}>Are you sure?</Text>
+                    <View style={{flexDirection:"row", justifyContent:"space-between", width:"50%", marginTop:20}}>
+                        <Button title="No!" onPress={() => setAreYourSureModal(false)} titleStyle={{ fontWeight: "700" }} />
+                        <Button title="Yes, Delete" onPress={(event) => { deleteSelectedComment(event, selectedCommentIdForDeletion), setAreYourSureModal(false)}} buttonStyle={{ backgroundColor:"#ff6961"}} titleStyle={{ fontWeight:"700" }} />
+                    </View>
+                </View>
+            </Modal>
 
         </View>
     )
@@ -289,5 +313,17 @@ const styles = StyleSheet.create({
         color:"white",
         flexWrap:"wrap",
         height:60
+    },
+
+    areYourSureModalWrapper:{
+        backgroundColor:"black", height:"25%", marginTop:"auto", alignItems:"center", borderTopColor:"white", borderTopWidth:1
+    },
+
+    modalOverlay: {
+        position: 'absolute',
+        top: 0,
+        bottom: 0,
+        left: 0,
+        right: 0
     }
 })

@@ -77,7 +77,7 @@ const HomeScreen = ({ navigation }) => {
                         })
                     }
                 })
-                .catch(error => console.log(error))
+                .catch(error => alert(error))
         }
     }
 
@@ -103,10 +103,6 @@ const HomeScreen = ({ navigation }) => {
                 })
             })
             .catch(error => alert(error))
-    }
-
-    const queryArt = () => {
-        
     }
 
     const addFavorite = (event, artId) => {
@@ -163,8 +159,6 @@ const HomeScreen = ({ navigation }) => {
         }
         setFilteredArt(preFilteredArt);
     },[query, genreQuery])
-
-    // console.log(state)
 
     return (
         state.userInfo && 
