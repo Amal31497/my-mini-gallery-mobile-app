@@ -14,9 +14,11 @@ const CommentTabView = (props) => {
 
     const [commentPostInput, setCommentPostInput] = useState("");
     const [responsePostInput, setResponsePostInput] = useState("");
+
     const [postCommentModal, setPostCommentModal] = useState(false);
     const [replyModal, setReplyModal] = useState(false);
     const [areYouSureModal, setAreYourSureModal] = useState(false);
+    
     const [selectedCommentIdForDeletion, setSelectedCommentIdForDeletion] = useState("");
     const [selectedCommentIdReply, setSelectedCommentIdReply] = useState("");
     const [selectedCommentInfoResponses, setSelectedCommentInfoResponses] = useState();
@@ -141,12 +143,10 @@ const CommentTabView = (props) => {
         }
     }
 
-
     useEffect(() => {
         showComments();
         findCurrentArtist();
     },[])
-
 
     return(
         <View>
@@ -166,6 +166,8 @@ const CommentTabView = (props) => {
                     <Text style={styles.callToActionText}>{" "}to post a comment</Text>
                 </View>
             }
+
+            {/* Main Comment Section */}
             <View>
                 {comments.length > 0 ?
                     comments.map(comment => {
@@ -175,16 +177,20 @@ const CommentTabView = (props) => {
                                 <View style={styles.contentColumn} >
                                     <View style={styles.contentColumnTopRow}>
                                         {comment ? <Text style={{ color: "white", fontWeight: "700" }}>{comment.userInfo.username}</Text> : null}
-                                        <View style={{flexDirection:"row"}}>
+                                        <View style={{ flexDirection: "row" }}>
                                             <Moment element={Text} fromNow style={{ color: "white" }}>
                                                 {comment.date}
                                             </Moment>
-                                            <Button 
-                                                title="del" 
-                                                buttonStyle={{ marginLeft: 5, backgroundColor: "transparent", padding:0, height:20, width:20, marginTop:-4 }} 
-                                                titleStyle={{ color: "red", alignSelf:"center", fontSize:15 }} 
-                                                onPress={() => {setSelectedCommentIdForDeletion(comment._id), setAreYourSureModal(true)}} 
-                                            />
+                                            {state.user.user_id === comment.user ?
+                                                <Button
+                                                    title="del"
+                                                    buttonStyle={{ marginLeft: 5, backgroundColor: "transparent", padding: 0, height: 20, width: 20, marginTop: -4 }}
+                                                    titleStyle={{ color: "red", alignSelf: "center", fontSize: 15 }}
+                                                    onPress={() => { setSelectedCommentIdForDeletion(comment._id), setAreYourSureModal(true) }}
+                                                />
+                                                :
+                                                null
+                                            }
                                         </View>
                                     </View>
                                     <Pressable style={styles.contentColumnBottomRow} onPress={() => { setReplyModal(true), setSelectedCommentIdReply(comment) }}>
@@ -227,6 +233,7 @@ const CommentTabView = (props) => {
                     <Text style={{color:"white", flexWrap:"wrap"}}>No comments for this post yet. Be the first one!</Text>
                 }
             </View>
+            {/* Main Comment Section Ends */}
 
             {/* Reply to Comment Modal */}
             <Modal
@@ -268,7 +275,6 @@ const CommentTabView = (props) => {
             </Modal>
             {/* Reply to Comment Modal Ends */}
 
-
             {/* Post Comment Modal */}
             <Modal
                 animationType="slide"
@@ -289,7 +295,7 @@ const CommentTabView = (props) => {
                     </KeyboardAvoidingView>
                 </View>
             </Modal>
-            {/* Post Comment Modal End */}
+            {/* Post Comment Modal Ends */}
 
             {/* Are you sure Modal */}
             <Modal
@@ -309,7 +315,7 @@ const CommentTabView = (props) => {
                     </View>
                 </View>
             </Modal>
-            {/* Are you sure Modal end */}
+            {/* Are you sure Modal Ends */}
 
         </View>
     )

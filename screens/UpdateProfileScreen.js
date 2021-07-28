@@ -1,8 +1,9 @@
 import React, { useEffect, useState, useLayoutEffect } from "react";
-import { StyleSheet, Text, View, Image, Modal, ActivityIndicator } from 'react-native';
+import { StyleSheet, Text, View, Image, Modal, ActivityIndicator, KeyboardAvoidingView } from 'react-native';
 import { Button, Input } from 'react-native-elements';
 import { useArtContext } from '../utils/GlobalState';
 import { getArtist,  } from "../utils/API";
+import { ScrollView } from "react-native-gesture-handler";
 
 const UpdateProfileScreen = ({navigation}) => {
     const [state,dispatch] = useArtContext();
@@ -14,41 +15,31 @@ const UpdateProfileScreen = ({navigation}) => {
         })
     },[navigation])
 
-    useEffect(() => {
-        getArtist(state.user)
-            .then(response => {
-                setArtist(response.data)
-            })
-            .catch(error => alert("Something went wrong!"))
-    },[])
-
     return (
-        <View style={styles.container}>
-            {!artist ?
-                <ActivityIndicator size="large" color="white" style={styles.activityIndicator} />
-                :
-                <>
-                    <View style={styles.avatarWrapper}>
-                        {artist && artist.avatar ?
-                            <Image source={{ uri: artist.avatar.avatarSrc }} style={styles.Avatar} />
-                            :
-                            <Image source={{ uri: "../assets/artist.jpg" }} style={styles.Avatar} />
-                        }
-                    </View>
+        <ScrollView style={styles.container}>
+            <KeyboardAvoidingView behavior="padding">
+                <View style={styles.avatarWrapper}>
+                    {state.userInfo.avatar ?
+                        <Image source={{ uri: state.userInfo.avatar.avatarSrc }} style={styles.Avatar} />
+                        :
+                        <Image source={{ uri: "../assets/artist.jpg" }} style={styles.Avatar} />
+                    }
+                </View>
 
-                    <View style={styles.artistTextInfoWrapper}>
-                        {artist ? <Input label="full name" style={styles.artistTextInfo} defaultValue={artist.firstName} /> : null}
-                        {artist ? <Input label="username" style={styles.artistTextInfo} defaultValue={artist.username} /> : null}
-                    </View>
+                <View style={styles.artistTextInfoWrapper}>
+                    {state.userInfo ? <Input label="full name" style={styles.artistTextInfo} defaultValue={state.userInfo.firstName} /> : null}
+                    {state.userInfo ? <Input label="username" style={styles.artistTextInfo} defaultValue={state.userInfo.username} /> : null}
+                </View>
 
-                    <View style={styles.artistDescriptionTextWrapper}>
-                        {artist ? <Input label="description" style={styles.artistDescriptionText} defaultValue={artist.description} /> : null}
+                <View style={styles.artistDescriptionTextWrapper}>
+                    {state.userInfo ? <Input label="description" style={styles.artistDescriptionText} defaultValue={state.userInfo.description} /> : null}
 
-                        {artist ? <Button title="Update" raised /> : null}
-                    </View>
-                </>
-            }
-        </View>
+                    {state.userInfo ? <Button title="Update" raised /> : null}
+                </View>
+            </KeyboardAvoidingView>
+
+            <View style={{ height: 240 }} />
+        </ScrollView>
     )
 }
 
@@ -82,12 +73,11 @@ const styles = StyleSheet.create({
     artistTextInfo: {
         color: "white",
         alignSelf: "center",
-        marginBottom: 5,
         fontWeight: "600"
     },
 
     artistDescriptionTextWrapper:{
-        height:"40%",
+        height:"60%",
         width:"80%",
         alignSelf: "center",
         flexWrap:"wrap"
@@ -95,10 +85,11 @@ const styles = StyleSheet.create({
 
     artistDescriptionText: {
         color: "white",
+        marginTop:10,
         paddingLeft: 15,
         paddingRight: 15,
-        height:100,
+        height:140,
         borderColor:"grey",
-        borderWidth:2
+        borderWidth:1
     }
 })
