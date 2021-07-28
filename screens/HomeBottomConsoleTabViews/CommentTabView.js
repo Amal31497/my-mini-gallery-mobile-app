@@ -3,8 +3,8 @@ import { StyleSheet, Text, View, Image, Modal, Pressable, KeyboardAvoidingView, 
 import { Button, Input } from 'react-native-elements';
 import { useArtContext } from '../../utils/GlobalState';
 import Moment from 'react-moment';
-import { loadComments, addComment, updateArt, getArtist, deleteComment } from '../../utils/API';
-import { ADD_COMMENT, GET_ALL_COMMENTS, UPDATE_ART, DELETE_COMMENT } from "../../utils/actions";
+import { addComment, updateArt, deleteComment, updateComment } from '../../utils/API';
+import { ADD_COMMENT, UPDATE_COMMENTS, DELETE_COMMENT } from "../../utils/actions";
 import { Entypo, AntDesign, FontAwesome5, Octicons, Ionicons } from '@expo/vector-icons';
 
 const CommentTabView = (props) => {
@@ -13,12 +13,13 @@ const CommentTabView = (props) => {
     const [comments, setComments] = useState([]);
 
     const [commentPostInput, setCommentPostInput] = useState("");
+    const [responsePostInput, setResponsePostInput] = useState("");
     const [postCommentModal, setPostCommentModal] = useState(false);
     const [replyModal, setReplyModal] = useState(false);
     const [areYouSureModal, setAreYourSureModal] = useState(false);
     const [selectedCommentIdForDeletion, setSelectedCommentIdForDeletion] = useState("");
-    const [commentReply, setCommentReply] = useState();
     const [selectedCommentIdReply, setSelectedCommentIdReply] = useState("");
+    const [selectedCommentInfoResponses, setSelectedCommentInfoResponses] = useState();
 
 
     const showComments = () => {
@@ -72,6 +73,43 @@ const CommentTabView = (props) => {
         }
     }
 
+    const handleResponseSubmit = (event) => {
+        event.preventDefault();
+
+        // Comment
+        let response = {
+            content: responsePostInput,
+            user: state.user.user_id,
+            // Nesting descriptive artist info in comment schema
+            userInfo: currentUser,
+            date: Date.now()
+        }
+
+        if(response.user && selectedCommentIdReply){
+            updateComment(selectedCommentIdReply._id, {response:response})
+                .then(response => {
+                    let updatedComments = [];
+                    comments.forEach(comment => {
+                        if (comment._id !== response.data._id) {
+                            updatedComments.push(comment)
+                        } else {
+                            updatedComments.push(response.data)
+                        }
+                    })
+
+                    setComments(updatedComments)
+                    dispatch({
+                        type: UPDATE_COMMENTS,
+                        comments: updatedComments
+                    })
+
+                    setReplyModal(false);
+                })
+                .catch(error => alert(error))
+            // setResponsePostInput("");
+        }
+    }
+
     const deleteSelectedComment = (event, id) => {
         event.preventDefault();
 
@@ -93,6 +131,16 @@ const CommentTabView = (props) => {
             .catch(error => alert(error))
     }
     
+    const commentResponsesToggle = (event,responses) => {
+        event.preventDefault();
+
+        if(!selectedCommentInfoResponses){
+            setSelectedCommentInfoResponses(responses)
+        } else {
+            setSelectedCommentInfoResponses(null)
+        }
+    }
+
 
     useEffect(() => {
         showComments();
@@ -142,11 +190,35 @@ const CommentTabView = (props) => {
                                     <Pressable style={styles.contentColumnBottomRow} onPress={() => { setReplyModal(true), setSelectedCommentIdReply(comment) }}>
                                         <Text style={{ color: "white", maxWidth: "95%", flexWrap:"wrap" }}>{comment.content}</Text>
                                         {comment.responses.length > 0 ?
-                                            <Button titleStyle={{ fontSize: 18, fontWeight: "600" }} buttonStyle={{ backgroundColor: "#007FFF", borderRadius: 40, paddingTop: 1.5, paddintBottom: 1.5, height: 28 }} title={comment.responses.length.toString()} />
+                                            <Button onPress={(event) => commentResponsesToggle(event, comment.responses)} title={comment.responses.length.toString() + " responses"} titleStyle={{ fontSize: 12, fontWeight: "800" }} buttonStyle={{ backgroundColor: "#007FFF", borderRadius: 40, paddingTop: 1.5, paddintBottom: 1.5, height: 24 }} />
                                             :
                                             null
                                         }
                                     </Pressable>
+                                    {selectedCommentInfoResponses ?
+                                        <View>
+                                            {selectedCommentInfoResponses.map(response => {
+                                                return (
+                                                    <View style={{ flexDirection: "row" }} key={response._id}>
+                                                        <View style={styles.avatarColumn}>{response.userInfo.avatar ? <Image source={{ uri: response.userInfo.avatar.avatarSrc }} style={styles.avatar} /> : null}</View>
+                                                        <View style={styles.responseContentColumn}>
+                                                            <View style={styles.contentColumnTopRow}>
+                                                                {response ? <Text style={{ color: "white", fontWeight: "500", fontSize: 12 }}>{response.userInfo.username}</Text> : null}
+                                                                <Moment element={Text} fromNow style={{ color: "white", fontSize:12 }}>
+                                                                    {response.date}
+                                                                </Moment>
+                                                            </View>
+                                                            <View style={styles.contentColumnBottomRow}>
+                                                                <Text style={{ color: "white", maxWidth: "95%", flexWrap: "wrap", fontSize: 12 }}>{response.content}</Text>
+                                                            </View>
+                                                        </View>
+                                                    </View>
+                                                )
+                                            })}
+                                        </View>
+                                        :
+                                        null
+                                    }
                                 </View>
                             </View>
                         )
@@ -186,11 +258,11 @@ const CommentTabView = (props) => {
                         <Input
                             placeholder="your response"
                             autoFocus type="text"
-                            value={commentReply}
-                            onChangeText={(text) => setCommentReply(text)}
+                            value={responsePostInput}
+                            onChangeText={(text) => setResponsePostInput(text)}
                             style={styles.commentReplyInputBox}
                         />
-                        <Button title="Send" />
+                        <Button title="Send" onPress={handleResponseSubmit} />
                     </KeyboardAvoidingView>
                 </View>
             </Modal>
@@ -294,6 +366,11 @@ const styles = StyleSheet.create({
         height:30,
         width:30
     },  
+
+    responseContentColumn:{
+        flexDirection: "column",
+        width: 210
+    },
 
     contentColumn:{
         flexDirection:"column",
