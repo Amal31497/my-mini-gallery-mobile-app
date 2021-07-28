@@ -20,7 +20,6 @@ const HomeScreen = ({ navigation }) => {
     const [state, dispatch] = useArtContext();
     const [query, setQuery] = useState("");
     const [genreQuery, setGenreQuery] = useState("");
-    const [art, setArt] = useState([]);
     const [filteredArt, setFilteredArt] = useState([]);
     const [consoleModal, setConsoleModal] = useState(false);
     const [rightModal, setRightModal] = useState(false);
@@ -141,8 +140,9 @@ const HomeScreen = ({ navigation }) => {
     
     useEffect(() => {      
         findArtist(); 
-        getGlobalArt();
         getAllComments();
+        getGlobalArt();
+        
         let preFilteredArt = [];
         if (query.length > 0 && genreQuery.length > 0) {
             state.allArt.forEach(art => {
@@ -158,7 +158,7 @@ const HomeScreen = ({ navigation }) => {
             })
         }
         setFilteredArt(preFilteredArt);
-    },[query, genreQuery])
+    }, [query, genreQuery])
 
     return (
         state.userInfo && 

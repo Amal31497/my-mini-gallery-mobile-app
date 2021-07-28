@@ -4,14 +4,13 @@ import { Button, Input } from 'react-native-elements';
 import { useArtContext } from '../../utils/GlobalState';
 import Moment from 'react-moment';
 import { loadComments, addComment, updateArt, getArtist, deleteComment } from '../../utils/API';
-import { ADD_COMMENT } from "../../utils/actions";
+import { ADD_COMMENT, GET_ALL_COMMENTS, UPDATE_ART, DELETE_COMMENT } from "../../utils/actions";
 import { Entypo, AntDesign, FontAwesome5, Octicons, Ionicons } from '@expo/vector-icons';
 
 const CommentTabView = (props) => {
     const [state, dispatch] = useArtContext();
     const [currentUser, setCurrentUser] = useState();
     const [comments, setComments] = useState([]);
-    const [targetArtCommentIds, setTargetArtCommentIds] = useState(props.comments);
 
     const [commentPostInput, setCommentPostInput] = useState("");
     const [postCommentModal, setPostCommentModal] = useState(false);
@@ -21,10 +20,11 @@ const CommentTabView = (props) => {
     const [commentReply, setCommentReply] = useState();
     const [selectedCommentIdReply, setSelectedCommentIdReply] = useState("");
 
+
     const showComments = () => {
         let filteredComments = [];
         props.allComments.forEach(comment => {
-            if(targetArtCommentIds.includes(comment._id)){
+            if (comment.art === props.targetArt){
                 filteredComments.push(comment)
             }
         })
@@ -56,22 +56,20 @@ const CommentTabView = (props) => {
         if (comment.art && comment.user) {
             addComment(comment)
                 .then(response => {
-
+                    setComments([response.data, ...comments]);
+                    setPostCommentModal(false);
                     dispatch({
                         type:ADD_COMMENT,
                         comment:response.data
                     })
-                    
                     updateArt(props.targetArt, { _id: response.data._id })
                         .then(response => {
-                            setTargetArtCommentIds(response.data.comments);
-                            setPostCommentModal(false);
                         })
                         .catch(error => alert(error));
                 })
                 .catch(error => alert(error))
+            setCommentPostInput("");
         }
-        
     }
 
     const deleteSelectedComment = (event, id) => {
@@ -79,17 +77,28 @@ const CommentTabView = (props) => {
 
         deleteComment(id)
             .then(response => {
-                let deletedCommentId = targetArtCommentIds.indexOf(response.data._id);
-                setTargetArtCommentIds([targetArtCommentIds.splice(deletedCommentId, 1), ...targetArtCommentIds]);
-                loadComments();
+                let updatedComments = [];
+                comments.forEach(comment => {
+                    if(comment._id !== response.data._id){
+                        updatedComments.push(comment)
+                    }
+                })
+                setComments(updatedComments)
+                dispatch({
+                    type:DELETE_COMMENT,
+                    comments:updatedComments
+                })
+
             })
             .catch(error => alert(error))
     }
+    
 
     useEffect(() => {
         showComments();
         findCurrentArtist();
-    }, [props.allComments, targetArtCommentIds, postCommentModal])
+    },[])
+
 
     return(
         <View>
@@ -210,23 +219,25 @@ const CommentTabView = (props) => {
             </Modal>
             {/* Post Comment Modal End */}
 
+            {/* Are you sure Modal */}
             <Modal
                 animationType="slide"
                 transparent={true}
                 visible={areYouSureModal}
             >
-                <TouchableWithoutFeedback onPress={() => setAreYourSureModal(false)}>
+                <TouchableWithoutFeedback onPress={() => { setSelectedCommentIdReply(""), setAreYourSureModal(false)}}>
                     <View style={styles.modalOverlay} />
                 </TouchableWithoutFeedback>
 
                 <View style={styles.areYourSureModalWrapper}>
-                    <Text style={{color:"white", marginTop:20, fontSize:"16", fontWeight:"700"}}>Are you sure?</Text>
+                    <Text style={{color:"white", marginTop:20, fontSize:16, fontWeight:"700"}}>Are you sure?</Text>
                     <View style={{flexDirection:"row", justifyContent:"space-between", width:"50%", marginTop:20}}>
-                        <Button title="No!" onPress={() => setAreYourSureModal(false)} titleStyle={{ fontWeight: "700" }} />
+                        <Button title="No!" onPress={() => { setSelectedCommentIdReply(""), setAreYourSureModal(false)}} titleStyle={{ fontWeight: "700" }} />
                         <Button title="Yes, Delete" onPress={(event) => { deleteSelectedComment(event, selectedCommentIdForDeletion), setAreYourSureModal(false)}} buttonStyle={{ backgroundColor:"#ff6961"}} titleStyle={{ fontWeight:"700" }} />
                     </View>
                 </View>
             </Modal>
+            {/* Are you sure Modal end */}
 
         </View>
     )
