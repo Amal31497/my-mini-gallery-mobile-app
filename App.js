@@ -8,6 +8,7 @@ import SignUpScreen from './screens/SignUpScreen';
 import HomeScreen from './screens/HomeScreen';
 import ProfileScreen from './screens/ProfileScreen';
 import UpdateProfileScreen from "./screens/UpdateProfileScreen";
+import UploadArt from "./screens/UploadArt";
 
 import { ArtProvider, useArtContext } from "./utils/GlobalState";
 import { authenticatedUser } from './utils/API';
@@ -56,6 +57,7 @@ export default function App() {
           <Stack.Screen name='Signup' component={SignUpScreen} />
           <Stack.Screen name="Home" component={HomeScreen} />
           <Stack.Screen name="Profile" component={ProfileScreen} />
+          <Stack.Screen name="Upload Art" component={UploadArt} />
           <Stack.Screen name="Update Profile" component={UpdateProfileScreen} />
         </Stack.Navigator>
       </NavigationContainer>

@@ -53,6 +53,12 @@ const HomeScreen = ({ navigation }) => {
         event.preventDefault();
     }
 
+    const checkoutUploadArt = (event) => {
+        event.preventDefault();
+
+        navigation.replace("Upload Art")
+    }
+
     const checkoutArt = (event, art) => {
         event.preventDefault();
         setSelectedArt(art)
@@ -358,7 +364,7 @@ const HomeScreen = ({ navigation }) => {
 
             <View style={styles.footer}>
                 <Entypo name="home" size={30} color="white" onPress={checkoutHome} />
-                <Ionicons name="add-circle-outline" size={30} color="white" />
+                <Ionicons name="add-circle-outline" size={30} color="white" onPress={checkoutUploadArt} />
                 <Ionicons name="person" size={30} color="white" onPress={checkoutProfile} />
             </View>
 

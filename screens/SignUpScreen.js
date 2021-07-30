@@ -16,12 +16,6 @@ const SignUpScreen = ({ navigation }) => {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
 
-    // useEffect(() => {
-    //     if(state.user){
-    //         navigation.replace("Home")
-    //     }
-    // },[])
-
     useLayoutEffect(() => {
         navigation.setOptions({
             headerBackTitle:"Login"

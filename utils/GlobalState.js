@@ -11,7 +11,8 @@ import {
     GET_ALL_COMMENTS,
     ADD_COMMENT,
     DELETE_COMMENT,
-    UPDATE_COMMENTS
+    UPDATE_COMMENTS,
+    UPDATE_ARTIST
 } from "./actions"
 
 // Global context init
@@ -72,6 +73,11 @@ const reducer = (state, action) => {
             return {
                 ...state,
                 comments: action.comments
+            }
+        case UPDATE_ARTIST:
+            return {
+                ...state,
+                userInfo: action.userInfo
             }
         default:
             return state
