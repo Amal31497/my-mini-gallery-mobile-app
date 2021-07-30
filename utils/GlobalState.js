@@ -12,7 +12,8 @@ import {
     ADD_COMMENT,
     DELETE_COMMENT,
     UPDATE_COMMENTS,
-    UPDATE_ARTIST
+    UPDATE_ARTIST,
+    UPDATE_ALL_ART
 } from "./actions"
 
 // Global context init
@@ -35,6 +36,11 @@ const reducer = (state, action) => {
                 userInfo:{}
             }
         case GET_ALL_ART:
+            return {
+                ...state,
+                allArt: action.allArt
+            }
+        case UPDATE_ALL_ART:
             return {
                 ...state,
                 allArt: action.allArt

@@ -18,8 +18,8 @@ import ReportTabView from "./HomeBottomConsoleTabViews/ReportTabView";
 
 const HomeScreen = ({ navigation }) => {
     const [state, dispatch] = useArtContext();
-    const [query, setQuery] = useState("");
-    const [genreQuery, setGenreQuery] = useState("");
+    const [query, setQuery] = useState();
+    const [genreQuery, setGenreQuery] = useState();
     const [filteredArt, setFilteredArt] = useState([]);
     const [consoleModal, setConsoleModal] = useState(false);
     const [rightModal, setRightModal] = useState(false);
@@ -61,11 +61,12 @@ const HomeScreen = ({ navigation }) => {
 
     const checkoutArt = (event, art) => {
         event.preventDefault();
-        setSelectedArt(art)
+        
         getArtist(art.user)
             .then(response => {
                 if(response.data){
                     setSelectedArtUser(response.data)
+                    setSelectedArt(art)
                 }
             })
             .catch(error => alert("Something went wrong!"))
@@ -92,7 +93,9 @@ const HomeScreen = ({ navigation }) => {
 
                 dispatch({
                     type: GET_ALL_ART,
-                    allArt: response.data
+                    allArt: response.data.sort((a, b) => {
+                        return b.date - a.date
+                    })
                 })
     
             })
@@ -150,15 +153,15 @@ const HomeScreen = ({ navigation }) => {
         getGlobalArt();
         
         let preFilteredArt = [];
-        if (query.length > 0 && genreQuery.length > 0) {
+        if (query && genreQuery) {
             state.allArt.forEach(art => {
                 if (art.tags.includes(query) && art.genre === genreQuery) preFilteredArt.push(art);
             })
-        } else if (query.lenth > 0) {
+        } else if (query) {
             state.allArt.forEach(art => {
                 if (art.tags.includes(query)) preFilteredArt.push(art);
             })
-        } else if (genreQuery.length > 0) {
+        } else if (genreQuery) {
             state.allArt.forEach(art => {
                 if (art.genre === genreQuery) preFilteredArt.push(art);
             })
@@ -172,11 +175,11 @@ const HomeScreen = ({ navigation }) => {
 
             {/* Genre Section */}
             <View style={{ flexDirection: "row" }}>
-                <AntDesign name="close" size={36} color="white" style={styles.dropGenreSelection} onPress={() => {setFilteredArt([]), setGenreQuery("")}} />
+                <AntDesign name="close" size={36} color="white" style={styles.dropGenreSelection} onPress={() => { setGenreQuery("")}} />
                 <ScrollView style={styles.genreSection} horizontal={true}>
                     {genres.map(genre => {
                         return (
-                            <Button key={genre} title={genre} type="outline" buttonStyle={genre === genreQuery ? styles.genreButtonSelected : styles.genreButton} titleStyle={genre === genreQuery ? styles.genreButtonTitleSelected : styles.genreButtonTitleStyle} onPress={() => { setFilteredArt([]), setGenreQuery(genre) }} />
+                            <Button onPress={() => setGenreQuery(genre)} key={genre} title={genre} type="outline" buttonStyle={genre === genreQuery ? styles.genreButtonSelected : styles.genreButton} titleStyle={genre === genreQuery ? styles.genreButtonTitleSelected : styles.genreButtonTitleStyle} />
                         )
                     })}
                 </ScrollView>
@@ -200,7 +203,7 @@ const HomeScreen = ({ navigation }) => {
             {/* Main Section */}
             <ScrollView>
                 {
-                    state.allArt && ((genreQuery.length > 0 || query.length > 0) ? filteredArt : state.allArt).map(art => {
+                    state.allArt && ((genreQuery || query) ? filteredArt : state.allArt).map(art => {
                         return (
                             <View key={art._id}>
 
@@ -220,8 +223,8 @@ const HomeScreen = ({ navigation }) => {
 
                                 <Image key={art._id} source={{ uri: art.src }}
                                     style={{
-                                        height: art.height * 0.35,
-                                        width: art.height * 0.35,
+                                        height: art.heightRatio * 280,
+                                        width: art.heightRatio * 280,
                                         marginLeft: "auto",
                                         marginRight: "auto",
                                         marginTop: 10,
@@ -257,7 +260,7 @@ const HomeScreen = ({ navigation }) => {
                     })  
                 }
                 {
-                    (genreQuery.length > 0 || query.length > 0) && (filteredArt.length <= 0) && 
+                    (genreQuery || query) && (filteredArt.length <= 0) && 
                     <View style={{ marginRight: "auto", marginLeft: "auto", marginTop: 140 }}>
                         <Text style={{ color: "white", fontSize: 17, fontWeight: "700", flexWrap: "wrap", marginRight: "auto", marginLeft: "auto" }}>No art was found with these search terms {genreQuery}{" "}{query}</Text>
                     </View>
