@@ -1,5 +1,5 @@
 import React, {useEffect, useState, useLayoutEffect} from "react";
-import { StyleSheet, Text, View, Image, Modal } from 'react-native';
+import { StyleSheet, Text, View, Image, Modal, TouchableWithoutFeedback, Pressable } from 'react-native';
 import { Button, Input } from 'react-native-elements';
 import { Entypo, AntDesign, FontAwesome5, Octicons, Ionicons } from '@expo/vector-icons';
 import { ScrollView } from "react-native-gesture-handler";
@@ -16,6 +16,7 @@ const ProfileScreen = ({navigation}) => {
     const [galleryState, setGalleryState] = useState("gallery");
     const [images, setImages] = useState([]);
     const [favorites, setFavorites] = useState([]);
+    const [leftSideModal, setLeftSideModal] = useState(false);
 
     useEffect(() => {
         if (state.userInfo) {
@@ -79,17 +80,27 @@ const ProfileScreen = ({navigation}) => {
             headerLeft: () => {
                 return (
                     <View>
-                        <Entypo name="menu" size={32} color="white" style={{ marginLeft: 30 }} />
+                        {leftSideModal === true ?
+                            <AntDesign onPress={() => setLeftSideModal(false)} name="close" size={32} color="white" style={{ marginLeft: 30 }} />
+                            :
+                            <Entypo onPress={() => setLeftSideModal(true)} name="menu" size={32} color="white" style={{ marginLeft: 30 }} />
+                        }
                     </View>
                 )
             }
         })
-    },[navigation])
+    },[navigation, leftSideModal])
 
     const checkoutHome = (event) => {
         event.preventDefault();
-
+        setLeftSideModal(false);
         navigation.replace("Home")
+    }
+
+    const checkoutUploadArt = (event) => {
+        event.preventDefault();
+        setLeftSideModal(false);
+        navigation.replace("Upload Art")
     }
 
     return(
@@ -163,12 +174,28 @@ const ProfileScreen = ({navigation}) => {
                         })
                     }
                 </View>
-                
+                {/* Left side modal */}
+                <Modal
+                    animationType="slide"
+                    transparent={true}
+                    visible={leftSideModal}
+                >
+                    <TouchableWithoutFeedback onPress={() => setLeftSideModal(false)}>
+                        <View style={styles.modalOverlay} />
+                    </TouchableWithoutFeedback>
+
+                    <View style={styles.leftModalWrapper}>
+                        <Text style={{ color: "white", fontSize: 21, marginTop: 30 }}>Welcome {state.userInfo.username}</Text>
+                        <Button onPress={checkoutHome} icon={<Entypo name="home" size={36} color="black" />} buttonStyle={{ backgrounColor: "transparent", marginTop: 20, height: 60, width: 60, borderRadius: "50%" }} />
+                        <Button onPress={checkoutUploadArt} icon={<AntDesign name="clouduploado" size={36} color="black" />} buttonStyle={{ backgrounColor: "transparent", marginTop: 20, height: 60, width: 60, borderRadius: "50%" }} />
+                    </View>
+                </Modal>
             </ScrollView>
+
 
             <View style={styles.footer}>
                 <Entypo name="home" size={30} color="white" onPress={checkoutHome} />
-                <Ionicons name="add-circle-outline" size={30} color="white" />
+                <Ionicons name="add-circle-outline" size={30} color="white" onPress={checkoutUploadArt}/>
                 <Ionicons name="person" size={30} color="white" />
             </View>
         </View>
@@ -258,6 +285,18 @@ const styles = StyleSheet.create({
         marginLeft: "auto",
         marginRight: "auto",
         marginBottom:30
+    },
+
+    leftModalWrapper: {
+        backgroundColor: "rgb(52,58,63)", height: "79.5%", width: "35%", marginRight: 20, marginTop: 89, alignItems: "center", alignSelf: "flex-start"
+    },
+
+    modalOverlay: {
+        position: 'absolute',
+        top: 0,
+        bottom: 0,
+        left: 0,
+        right: 0
     }
 
 })

@@ -6,7 +6,6 @@ import logo from '../assets/logo.png';
 import { useArtContext } from '../utils/GlobalState';
 import { LOGIN } from "../utils/actions";
 import { login } from "../utils/API";
-import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const  LoginScreen = ({ navigation }) => {
 

@@ -1,7 +1,7 @@
 import React, { useLayoutEffect, useEffect, useState, useRef } from "react";
 
 import { StyleSheet, Text, View, Image, Modal, FlatList, 
-        TouchableWithoutFeedback, TouchableOpacity, ActivityIndicator } from 'react-native';
+        TouchableWithoutFeedback, TouchableOpacity, ActivityIndicator, Pressable } from 'react-native';
 import { Button, Input } from 'react-native-elements';
 import { ScrollView } from "react-native-gesture-handler";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -21,8 +21,11 @@ const HomeScreen = ({ navigation }) => {
     const [query, setQuery] = useState();
     const [genreQuery, setGenreQuery] = useState();
     const [filteredArt, setFilteredArt] = useState([]);
+
     const [consoleModal, setConsoleModal] = useState(false);
     const [rightModal, setRightModal] = useState(false);
+    const [leftSideModal, setLeftSideModal] = useState(false);
+    
     const [selectedArt, setSelectedArt] = useState({});
     const [selectedArtUser, setSelectedArtUser] = useState({});
     const [selectedTab, setSelectedTab] = useState("infoTab");
@@ -45,7 +48,7 @@ const HomeScreen = ({ navigation }) => {
 
     const checkoutProfile = (event) => {
         event.preventDefault();
-
+        setLeftSideModal(false);
         navigation.replace("Profile")
     }
 
@@ -55,7 +58,7 @@ const HomeScreen = ({ navigation }) => {
 
     const checkoutUploadArt = (event) => {
         event.preventDefault();
-
+        setLeftSideModal(false);
         navigation.replace("Upload Art")
     }
 
@@ -140,12 +143,16 @@ const HomeScreen = ({ navigation }) => {
             headerLeft: () => {
                 return (
                     <View>
-                        <Entypo name="menu" size={32} color="white" style={{marginLeft:30}} />
+                        {leftSideModal === true ? 
+                            <AntDesign onPress={() => setLeftSideModal(false)} name="close" size={32} color="white" style={{ marginLeft: 30 }} />
+                            :
+                            <Entypo onPress={() => setLeftSideModal(true)} name="menu" size={32} color="white" style={{ marginLeft: 30 }} />
+                        }
                     </View>
                 )
             }
         })
-    }, [navigation])
+    }, [navigation, leftSideModal])
     
     useEffect(() => {      
         findArtist(); 
@@ -175,7 +182,8 @@ const HomeScreen = ({ navigation }) => {
 
             {/* Genre Section */}
             <View style={{ flexDirection: "row" }}>
-                <AntDesign name="close" size={36} color="white" style={styles.dropGenreSelection} onPress={() => { setGenreQuery("")}} />
+                <Ionicons name="reload-circle-outline" size={30} color="white" style={styles.dropGenreSelection} onPress={() => { setGenreQuery("") }}  />
+                {/* <AntDesign name="close" size={36} color="white" style={styles.dropGenreSelection} onPress={() => { setGenreQuery("")}} /> */}
                 <ScrollView style={styles.genreSection} horizontal={true}>
                     {genres.map(genre => {
                         return (
@@ -365,11 +373,36 @@ const HomeScreen = ({ navigation }) => {
                 </View>
             </Modal>
 
+            {/* Footer */}
             <View style={styles.footer}>
                 <Entypo name="home" size={30} color="white" onPress={checkoutHome} />
                 <Ionicons name="add-circle-outline" size={30} color="white" onPress={checkoutUploadArt} />
                 <Ionicons name="person" size={30} color="white" onPress={checkoutProfile} />
             </View>
+
+            {/* Left side modal */}
+            <Modal
+                animationType="slide"
+                transparent={true}
+                visible={leftSideModal}
+            >
+                <TouchableWithoutFeedback onPress={() => setLeftSideModal(false)}>
+                    <View style={styles.modalOverlay} />
+                </TouchableWithoutFeedback>
+                
+                <View style={styles.leftModalWrapper}>
+                    <Text style={{ color: "white", fontSize: 21, marginTop:30 }}>Welcome {state.userInfo.username}</Text>
+                    <Pressable onPress={checkoutProfile}>
+                        {state.userInfo.avatar ? 
+                            <Image source={{ uri: state.userInfo.avatar.avatarSrc }} style={{ marginTop: 20, height: 60, width: 60, borderRadius: "50%" }} />
+                            :
+                            <Image source={{ uri: "../assets/artist.jpg" }} style={{ marginTop: 20, height: 60, width: 60, borderRadius: "50%" }} />
+                        }
+                        
+                    </Pressable>
+                    <Button onPress={checkoutUploadArt} icon={<AntDesign name="clouduploado" size={36} color="black" />} buttonStyle={{backgrounColor:"transparent", marginTop:20, height:60, width:60, borderRadius:"50%"}} />
+                </View>
+            </Modal>
 
         </SafeAreaView>
     )
@@ -524,6 +557,10 @@ const styles = StyleSheet.create({
     rightModalWrapper:{
         backgroundColor: "white", height: "25%", width:"50%", marginRight:20, marginTop:400, alignItems:"center", alignSelf:"flex-end"
     },  
+
+    leftModalWrapper:{
+        backgroundColor: "rgb(52,58,63)", height: "78.99%", width: "35%", marginRight: 20, marginTop:89, alignItems: "center", alignSelf: "flex-start"
+    },
 
     tabBar:{
         flexDirection:"row",
